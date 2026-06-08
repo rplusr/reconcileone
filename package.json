@@ -1,0 +1,16 @@
+{
+  "name": "blackhole-gallery",
+  "version": "1.0.0",
+  "description": "WebGL immersive black hole gallery module with CMS",
+  "type": "module",
+  "main": "src/GalleryModule.js",
+  "scripts": {
+    "serve": "npx serve . -p 3000"
+  },
+  "devDependencies": {
+    "three": "^0.160.0",
+    "serve": "^14.2.1"
+  },
+  "keywords": ["webgl", "three.js", "gallery", "blackhole", "immersive"],
+  "license": "MIT"
+}
