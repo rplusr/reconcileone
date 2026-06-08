@@ -1,0 +1,83 @@
+{
+  "gallery": {
+    "title": "Gallery",
+    "settings": {
+      "speed": 0.3,
+      "tunnelRadius": 2.5,
+      "depth": 30,
+      "backgroundColor": "#000000"
+    }
+  },
+  "images": [
+    {
+      "id": "1",
+      "src": "https://picsum.photos/seed/void1/800/600",
+      "title": "Void I",
+      "year": "2024",
+      "medium": "Digital"
+    },
+    {
+      "id": "2",
+      "src": "https://picsum.photos/seed/abyss2/800/600",
+      "title": "Abyss II",
+      "year": "2024",
+      "medium": "Generative"
+    },
+    {
+      "id": "3",
+      "src": "https://picsum.photos/seed/singularity3/800/600",
+      "title": "Singularity",
+      "year": "2023",
+      "medium": "Photography"
+    },
+    {
+      "id": "4",
+      "src": "https://picsum.photos/seed/event4/800/600",
+      "title": "Event Horizon",
+      "year": "2024",
+      "medium": "Digital"
+    },
+    {
+      "id": "5",
+      "src": "https://picsum.photos/seed/dark5/800/600",
+      "title": "Dark Matter",
+      "year": "2023",
+      "medium": "Mixed Media"
+    },
+    {
+      "id": "6",
+      "src": "https://picsum.photos/seed/nebula6/800/600",
+      "title": "Nebula VI",
+      "year": "2024",
+      "medium": "Photography"
+    },
+    {
+      "id": "7",
+      "src": "https://picsum.photos/seed/collapse7/800/600",
+      "title": "Gravitational Collapse",
+      "year": "2022",
+      "medium": "Digital"
+    },
+    {
+      "id": "8",
+      "src": "https://picsum.photos/seed/lensing8/800/600",
+      "title": "Lensing",
+      "year": "2024",
+      "medium": "Generative"
+    },
+    {
+      "id": "9",
+      "src": "https://picsum.photos/seed/photon9/800/600",
+      "title": "Photon Ring",
+      "year": "2023",
+      "medium": "Digital"
+    },
+    {
+      "id": "10",
+      "src": "https://picsum.photos/seed/accretion10/800/600",
+      "title": "Accretion",
+      "year": "2022",
+      "medium": "Mixed Media"
+    }
+  ]
+}

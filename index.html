@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Black Hole Gallery</title>
+
+  <!-- Import map: Three.js r160 from CDN -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="./public/style.css" />
+
+  <style>
+    /* Page-level overrides */
+    html, body {
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Branding -->
+  <div id="gallery-title">&#9679; Gallery</div>
+
+  <!-- CMS admin link -->
+  <a id="cms-link" href="./src/admin.html" title="Open CMS Admin">CMS</a>
+
+  <!-- Gallery mount point -->
+  <div id="gallery-container"></div>
+
+  <script type="module">
+    import { GalleryModule } from './src/GalleryModule.js';
+
+    const container = document.getElementById('gallery-container');
+
+    const gallery = new GalleryModule({
+      container,
+      cmsUrl: './cms/images.json'
+    });
+
+    gallery.init().catch(err => {
+      console.error('[Gallery] Initialization error:', err);
+    });
+
+    // Expose for debugging
+    window.__gallery = gallery;
+  </script>
+</body>
+</html>

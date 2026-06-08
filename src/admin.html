@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery CMS — Admin</title>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="../public/style.css" />
+</head>
+<body class="admin-page">
+
+  <div class="admin-container">
+
+    <!-- Header -->
+    <header class="admin-header">
+      <h1>&#9679; Gallery CMS</h1>
+      <a href="../index.html">&larr; View Gallery</a>
+    </header>
+
+    <!-- Image list section -->
+    <section class="admin-section">
+      <h2>Images <span id="image-count" style="color:var(--color-text-dim)"></span></h2>
+      <div id="image-list">
+        <div class="empty-state">Loading images&hellip;</div>
+      </div>
+    </section>
+
+    <!-- Add image section -->
+    <section class="admin-section">
+      <h2>Add Image</h2>
+      <form class="add-form" id="add-form" novalidate>
+        <div class="form-group full-width">
+          <label for="img-src">Image URL <span style="color:var(--color-danger)">*</span></label>
+          <input type="url" id="img-src" name="src" placeholder="https://example.com/image.jpg" required />
+        </div>
+        <div class="form-group full-width">
+          <label for="img-title">Title <span style="color:var(--color-danger)">*</span></label>
+          <input type="text" id="img-title" name="title" placeholder="Untitled" required />
+        </div>
+        <div class="form-group">
+          <label for="img-year">Year</label>
+          <input type="text" id="img-year" name="year" placeholder="2024" />
+        </div>
+        <div class="form-group">
+          <label for="img-medium">Medium</label>
+          <input type="text" id="img-medium" name="medium" placeholder="Digital" />
+        </div>
+        <div class="form-actions">
+          <button type="reset" class="btn btn-ghost">Clear</button>
+          <button type="submit" class="btn btn-primary">Add Image</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Export section -->
+    <section class="admin-section">
+      <h2>Export</h2>
+      <p style="font-size:0.8rem; color:var(--color-text-muted); margin-bottom:1rem; line-height:1.6;">
+        Changes are saved to <code style="font-family:var(--font-mono); color:var(--color-text-dim)">localStorage</code> automatically.
+        Use Export to copy the updated JSON into <code style="font-family:var(--font-mono); color:var(--color-text-dim)">cms/images.json</code>.
+      </p>
+      <div class="export-area">
+        <button class="btn btn-ghost" id="export-btn">Export JSON</button>
+        <div class="export-json-output" id="export-output">
+          <pre id="export-pre"></pre>
+          <div class="export-copy-bar">
+            <button class="btn btn-ghost" id="copy-btn">Copy to clipboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <script type="module">
+    import { loadImages, saveImages, exportJSON, generateId, validateImage } from './GalleryCMS.js';
+
+    const CMS_URL = '../cms/images.json';
+    const STORAGE_KEY = 'blackhole_gallery_images';
+
+    // ── State ──────────────────────────────────────────────────────────────────
+    let galleryMeta = {
+      title: 'Gallery',
+      settings: {
+        speed: 0.3,
+        tunnelRadius: 2.5,
+        depth: 30,
+        backgroundColor: '#000000'
+      }
+    };
+    let images = [];
+
+    // ── DOM refs ───────────────────────────────────────────────────────────────
+    const imageList   = document.getElementById('image-list');
+    const imageCount  = document.getElementById('image-count');
+    const addForm     = document.getElementById('add-form');
+    const exportBtn   = document.getElementById('export-btn');
+    const exportOutput = document.getElementById('export-output');
+    const exportPre   = document.getElementById('export-pre');
+    const copyBtn     = document.getElementById('copy-btn');
+    const toast       = document.getElementById('toast');
+
+    // ── Toast ──────────────────────────────────────────────────────────────────
+    function showToast(msg, duration = 2200) {
+      toast.textContent = msg;
+      toast.classList.add('show');
+      clearTimeout(showToast._tid);
+      showToast._tid = setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    // ── Render list ────────────────────────────────────────────────────────────
+    function renderImageList() {
+      imageCount.textContent = `(${images.length})`;
+
+      if (images.length === 0) {
+        imageList.innerHTML = '<div class="empty-state">No images yet. Add one below.</div>';
+        return;
+      }
+
+      imageList.innerHTML = '';
+      for (const img of images) {
+        const item = document.createElement('div');
+        item.className = 'image-item';
+        item.dataset.id = img.id;
+
+        item.innerHTML = `
+          <img class="image-thumb" src="${escapeAttr(img.src)}" alt="" loading="lazy"
+               onerror="this.style.opacity='0.2'" />
+          <div class="image-info">
+            <div class="title">${escapeHtml(img.title)}</div>
+            <div class="meta">${[img.year, img.medium].filter(Boolean).map(escapeHtml).join(' · ') || '&nbsp;'}</div>
+            <div class="src">${escapeHtml(img.src)}</div>
+          </div>
+          <button class="btn btn-danger" data-delete="${escapeAttr(img.id)}" title="Remove">✕</button>
+        `;
+
+        imageList.appendChild(item);
+      }
+
+      // Delete handlers
+      imageList.querySelectorAll('[data-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.delete;
+          images = images.filter(i => i.id !== id);
+          saveImages(images);
+          renderImageList();
+          showToast('Image removed');
+        });
+      });
+    }
+
+    // ── Add image form ─────────────────────────────────────────────────────────
+    addForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const fd = new FormData(addForm);
+
+      const newImg = {
+        id: generateId(),
+        src: fd.get('src').trim(),
+        title: fd.get('title').trim(),
+        year: fd.get('year').trim(),
+        medium: fd.get('medium').trim()
+      };
+
+      // Remove empty optional fields
+      if (!newImg.year) delete newImg.year;
+      if (!newImg.medium) delete newImg.medium;
+
+      const { valid, errors } = validateImage(newImg);
+      if (!valid) {
+        showToast('Error: ' + errors.join(', '));
+        return;
+      }
+
+      images = [...images, newImg];
+      saveImages(images);
+      renderImageList();
+      addForm.reset();
+      showToast('Image added ✓');
+    });
+
+    // ── Export ─────────────────────────────────────────────────────────────────
+    exportBtn.addEventListener('click', () => {
+      const json = exportJSON(galleryMeta, images);
+      exportPre.textContent = json;
+      exportOutput.classList.toggle('visible');
+      if (exportOutput.classList.contains('visible')) {
+        exportBtn.textContent = 'Hide JSON';
+      } else {
+        exportBtn.textContent = 'Export JSON';
+      }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      const text = exportPre.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast('Copied to clipboard ✓');
+      } catch {
+        // Fallback: select text
+        const range = document.createRange();
+        range.selectNodeContents(exportPre);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        showToast('Select all (Ctrl+C) to copy');
+      }
+    });
+
+    // ── Escape helpers ─────────────────────────────────────────────────────────
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function escapeAttr(str) {
+      return String(str ?? '').replace(/"/g, '&quot;');
+    }
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    async function init() {
+      const data = await loadImages(CMS_URL);
+      galleryMeta = data.gallery || galleryMeta;
+      images = data.images || [];
+      renderImageList();
+    }
+
+    init();
+  </script>
+</body>
+</html>
