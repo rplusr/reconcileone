@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Head Ballpit</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1a1a2e; width: 100vw; height: 100vh; overflow: hidden; }
+    #canvas-wrap { width: 100%; height: 100%; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <div id="canvas-wrap">
+    <canvas id="bp"></canvas>
+  </div>
+  <script type="module">
+    import { createBallpit } from './src/Ballpit.js';
+    const canvas = document.getElementById('bp');
+    createBallpit(canvas, {
+      count: 80,
+      followCursor: true,
+      gravity: 0.4,
+      minSize: 0.4,
+      maxSize: 1.1
+    });
+  </script>
+</body>
+</html>
