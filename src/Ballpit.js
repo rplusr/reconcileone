@@ -2,7 +2,6 @@ import {
   Vector3,
   MeshBasicMaterial,
   InstancedMesh,
-  Timer,
   AmbientLight,
   PlaneGeometry,
   Scene,
@@ -17,6 +16,19 @@ import {
   Plane,
   Raycaster
 } from 'three';
+
+class Timer {
+  #last = 0;
+  reset() { this.#last = performance.now(); }
+  update() {}
+  getDelta() {
+    const now = performance.now();
+    const d = Math.min((now - this.#last) / 1000, 0.1);
+    this.#last = now;
+    return d;
+  }
+  dispose() {}
+}
 
 // ─── Three.js bootstrap ───────────────────────────────────────────────────────
 
@@ -439,7 +451,7 @@ export function createBallpit(canvas, userCfg = {}) {
   app.resize();
 
   // resolve SVG path relative to this script
-  const svgUrl = new URL('../public/head.svg', import.meta.url).href;
+  const svgUrl = userCfg.svgUrl ?? '/public/head.svg';
 
   let heads = null;
   let paused = false;
