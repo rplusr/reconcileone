@@ -3,55 +3,301 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Black Hole Gallery</title>
-
-  <!-- Import map: Three.js r160 from CDN -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-
-  <link rel="stylesheet" href="./public/style.css" />
-
+  <title>Dirtverse Orb Carousel</title>
   <style>
-    /* Page-level overrides */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     html, body {
+      width: 100%; height: 100%;
+      background: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Helvetica Neue', Arial, sans-serif;
       overflow: hidden;
-      background: #000;
+      color: #fff;
+    }
+
+    /* ── Stage ─────────────────────────────────────────── */
+    .stage {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+      user-select: none;
+    }
+
+    /* ── Orb wrapper (ring + video) ─────────────────────── */
+    .orb-wrap {
+      position: relative;
+      width: 340px;
+      height: 340px;
+    }
+
+    /* SVG ring sits on top */
+    .progress-ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transform: rotate(-90deg); /* start arc at top */
+      z-index: 10;
+    }
+
+    .ring-track {
+      fill: none;
+      stroke: rgba(255,255,255,0.10);
+      stroke-width: 3;
+    }
+
+    .ring-arc {
+      fill: none;
+      stroke: rgba(255,255,255,0.85);
+      stroke-width: 3;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 0s linear; /* rAF drives it, no CSS transition */
+    }
+
+    /* Video slides */
+    .slides {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .slide.active { opacity: 1; }
+
+    .slide video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── Ticker ─────────────────────────────────────────── */
+    .ticker-wrap {
+      height: 44px;
+      overflow: hidden;
+      text-align: center;
+      position: relative;
+    }
+
+    .ticker-inner {
+      display: flex;
+      flex-direction: column;
+      /* JS controls translateY */
+      will-change: transform;
+    }
+
+    .ticker-item {
+      height: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .ticker-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .ticker-title {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: #fff;
+      line-height: 1;
+    }
+
+    /* ── Dot indicators ─────────────────────────────────── */
+    .dots {
+      display: flex;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      border: none;
+      outline: none;
+      padding: 0;
+    }
+    .dot.active {
+      background: #fff;
+      transform: scale(1.35);
     }
   </style>
 </head>
 <body>
 
-  <!-- Branding -->
-  <div id="gallery-title">&#9679; Gallery</div>
+<div class="stage">
 
-  <!-- CMS admin link -->
-  <a id="cms-link" href="./src/admin.html" title="Open CMS Admin">CMS</a>
+  <!-- Orb -->
+  <div class="orb-wrap">
 
-  <!-- Gallery mount point -->
-  <div id="gallery-container"></div>
+    <!-- Progress ring -->
+    <svg class="progress-ring" viewBox="0 0 340 340">
+      <circle class="ring-track" cx="170" cy="170" r="164" />
+      <circle class="ring-arc"   cx="170" cy="170" r="164" id="arc" />
+    </svg>
 
-  <script type="module">
-    import { GalleryModule } from './src/GalleryModule.js';
+    <!-- Video slides -->
+    <div class="slides" id="slides"></div>
 
-    const container = document.getElementById('gallery-container');
+  </div>
 
-    const gallery = new GalleryModule({
-      container,
-      cmsUrl: './cms/images.json'
+  <!-- Ticker -->
+  <div class="ticker-wrap">
+    <div class="ticker-inner" id="ticker"></div>
+  </div>
+
+  <!-- Dots -->
+  <div class="dots" id="dots"></div>
+
+</div>
+
+<script>
+  const CDN = 'https://pub-48241b63717b4fb8a39ec6bd2d9bdca4.r2.dev/';
+
+  const WORLDS = [
+    { label: 'World 1', title: 'Dirt Logo',         file: 'world1-dirt-logo.webm'          },
+    { label: 'World 2', title: 'Liquid Gradient',   file: 'world2-liquid-gradient.webm'    },
+    { label: 'World 3', title: 'Microorganism',     file: 'world3-microorganism.webm'      },
+    { label: 'World 4', title: 'Organic Flower',    file: 'world4-organic-flower.webm'     },
+    { label: 'World 5', title: '3D Plant Lilac',    file: 'world5-3d-plant-lilac.webm'     },
+  ];
+
+  const DWELL_MS   = 4000;   // time per slide before auto-advance
+  const FADE_MS    = 1200;   // must match CSS transition
+
+  /* ── Arc geometry ─────────────────────────────────────── */
+  const arc        = document.getElementById('arc');
+  const R          = 164;
+  const CIRC       = 2 * Math.PI * R;
+  arc.style.strokeDasharray  = CIRC;
+  arc.style.strokeDashoffset = CIRC; // fully hidden initially
+
+  /* ── Build slides ─────────────────────────────────────── */
+  const slidesEl  = document.getElementById('slides');
+  const tickerEl  = document.getElementById('ticker');
+  const dotsEl    = document.getElementById('dots');
+
+  const slideEls  = [];
+  const dotEls    = [];
+
+  WORLDS.forEach((w, i) => {
+    // slide
+    const div  = document.createElement('div');
+    div.className = 'slide';
+    const vid  = document.createElement('video');
+    vid.src    = CDN + w.file;
+    vid.loop   = true;
+    vid.muted  = true;
+    vid.playsInline = true;
+    vid.preload = 'auto';
+    div.appendChild(vid);
+    slidesEl.appendChild(div);
+    slideEls.push(div);
+
+    // ticker item
+    const item  = document.createElement('div');
+    item.className = 'ticker-item';
+    item.innerHTML = `<span class="ticker-label">${w.label}</span><span class="ticker-title">${w.title}</span>`;
+    tickerEl.appendChild(item);
+
+    // dot
+    const dot  = document.createElement('button');
+    dot.className = 'dot';
+    dot.setAttribute('aria-label', `${w.label}: ${w.title}`);
+    dot.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(dot);
+    dotEls.push(dot);
+  });
+
+  /* ── State ────────────────────────────────────────────── */
+  let current      = 0;
+  let startTime    = null;   // rAF timestamp when current slide started
+  let animId       = null;
+  let transitioning = false;
+
+  function activateSlide(idx, immediate) {
+    slideEls.forEach((el, i) => {
+      el.classList.toggle('active', i === idx);
+      if (i === idx) {
+        el.querySelector('video').play().catch(() => {});
+      } else {
+        // don't pause others — keeps them preloaded & avoids flicker
+      }
     });
 
-    gallery.init().catch(err => {
-      console.error('[Gallery] Initialization error:', err);
-    });
+    dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
 
-    // Expose for debugging
-    window.__gallery = gallery;
-  </script>
+    // ticker: slide up
+    const offset = -idx * 44;
+    tickerEl.style.transition = immediate ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+    tickerEl.style.transform  = `translateY(${offset}px)`;
+  }
+
+  function goTo(idx) {
+    if (idx === current && !transitioning) return;
+    transitioning = true;
+    current = idx;
+    activateSlide(current, false);
+
+    // reset arc immediately
+    arc.style.strokeDashoffset = CIRC;
+
+    // restart rAF loop
+    cancelAnimationFrame(animId);
+    startTime = null;
+    transitioning = false;
+    animId = requestAnimationFrame(tick);
+  }
+
+  function advance() {
+    goTo((current + 1) % WORLDS.length);
+  }
+
+  /* ── rAF loop ─────────────────────────────────────────── */
+  function tick(ts) {
+    if (startTime === null) startTime = ts;
+    const elapsed = ts - startTime;
+    const progress = Math.min(elapsed / DWELL_MS, 1);
+
+    // draw arc: offset shrinks from CIRC→0 as progress goes 0→1
+    arc.style.strokeDashoffset = CIRC * (1 - progress);
+
+    if (progress >= 1) {
+      advance();
+      return; // goTo will re-schedule rAF
+    }
+
+    animId = requestAnimationFrame(tick);
+  }
+
+  /* ── Bootstrap ────────────────────────────────────────── */
+  activateSlide(0, true);
+  animId = requestAnimationFrame(tick);
+</script>
+
 </body>
 </html>
