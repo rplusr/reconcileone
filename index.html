@@ -176,14 +176,12 @@
 </div>
 
 <script>
-  const CDN = 'https://pub-48241b63717b4fb8a39ec6bd2d9bdca4.r2.dev/';
-
   const WORLDS = [
-    { label: 'World 1', title: 'Dirt Logo',         file: 'world1-dirt-logo.webm'          },
-    { label: 'World 2', title: 'Liquid Gradient',   file: 'world2-liquid-gradient.webm'    },
-    { label: 'World 3', title: 'Microorganism',     file: 'world3-microorganism.webm'      },
-    { label: 'World 4', title: 'Organic Flower',    file: 'world4-organic-flower.webm'     },
-    { label: 'World 5', title: '3D Plant Lilac',    file: 'world5-3d-plant-lilac.webm'     },
+    { label: 'World 1', title: 'Dirt Logo'       },
+    { label: 'World 2', title: 'Liquid Gradient' },
+    { label: 'World 3', title: 'Microorganism'   },
+    { label: 'World 4', title: 'Organic Flower'  },
+    { label: 'World 5', title: '3D Plant Lilac'  },
   ];
 
   const DWELL_MS   = 4000;   // time per slide before auto-advance
@@ -208,13 +206,9 @@
     // slide
     const div  = document.createElement('div');
     div.className = 'slide';
-    const vid  = document.createElement('video');
-    vid.src    = CDN + w.file;
-    vid.loop   = true;
-    vid.muted  = true;
-    vid.playsInline = true;
-    vid.preload = 'auto';
-    div.appendChild(vid);
+    const box  = document.createElement('div');
+    box.style.cssText = 'width:100%;height:100%;background:#444;';
+    div.appendChild(box);
     slidesEl.appendChild(div);
     slideEls.push(div);
 
@@ -242,11 +236,6 @@
   function activateSlide(idx, immediate) {
     slideEls.forEach((el, i) => {
       el.classList.toggle('active', i === idx);
-      if (i === idx) {
-        el.querySelector('video').play().catch(() => {});
-      } else {
-        // don't pause others — keeps them preloaded & avoids flicker
-      }
     });
 
     dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
