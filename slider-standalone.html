@@ -6,105 +6,109 @@
   <title>Layered Slider</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      background: #080808;
+      background: #060606;
       font-family: system-ui, -apple-system, sans-serif;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ── Page wrapper — visible padding around the slider ── */
+    /* ── Padded page wrapper ─────────────────────────────────────────── */
     .ls-page {
       width: 100vw;
       height: 100vh;
-      padding: 2.25rem 2.5rem;
-      display: flex;
-      align-items: stretch;
+      padding: 3.5rem 6rem;
       background:
-        radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.07) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 50%, rgba(124,58,237,0.04) 0%, transparent 60%),
-        #080808;
+        radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse at 80% 50%, rgba(124,58,237,0.05) 0%, transparent 55%),
+        #060606;
     }
 
-    /* ── Slider root ── */
+    /* ── Slider frame ────────────────────────────────────────────────── */
     .layered-slider {
       position: relative;
-      flex: 1;
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      border-radius: 20px;
+      border-radius: 22px;
       background: #000;
       box-shadow:
-        0 0 0 1px rgba(255,255,255,0.05),
-        0 32px 80px rgba(0,0,0,0.8),
-        0 8px 24px rgba(0,0,0,0.5);
+        0 0 0 1px rgba(255,255,255,0.06),
+        0 40px 100px rgba(0,0,0,0.85),
+        0 10px 28px  rgba(0,0,0,0.5);
     }
 
-    /* ── Backgrounds ── */
-    .ls-bg-collection { position: absolute; inset: 0; overflow: hidden; }
-    .ls-bg-item       { position: absolute; inset: 0; }
+    /* ── Background images ───────────────────────────────────────────── */
+    .ls-bg-collection { position: absolute; inset: 0; }
+    .ls-bg-item       { position: absolute; inset: 0; pointer-events: none; }
     .ls-bg-img {
       width: 100%; height: 100%;
       object-fit: cover;
-      filter: blur(14px) brightness(0.38) saturate(1.3);
+      filter: blur(16px) brightness(0.32) saturate(1.25);
       transform: scale(1.1);
     }
 
-    /* ── Dark vignette ── */
+    /* ── Dark vignette ───────────────────────────────────────────────── */
     .ls-dark {
-      position: absolute; inset: 0; z-index: 2;
+      position: absolute; inset: 0; z-index: 2; pointer-events: none;
       background:
-        linear-gradient(to top,   rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 45%, transparent 100%),
-        linear-gradient(to right,  rgba(0,0,0,0.35) 0%, transparent 40%),
-        linear-gradient(to left,   rgba(0,0,0,0.35) 0%, transparent 40%);
+        linear-gradient(to top,   rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.1) 50%, transparent 100%),
+        linear-gradient(to right, rgba(0,0,0,0.45) 0%, transparent 35%),
+        linear-gradient(to left,  rgba(0,0,0,0.45) 0%, transparent 35%);
     }
 
-    /* ── Thumbnail / mask frame ── */
+    /* ── Card track ──────────────────────────────────────────────────── */
+    /*
+     * Spans full slider width so adjacent cards peek in from the sides.
+     * The CSS mask fades out the far edges so the peek looks intentional.
+     */
     .ls-mask-collection {
       position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -56%);
-      width: min(380px, 48vw);
-      height: min(500px, 62vh);
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-54%);
+      height: min(460px, 60vh);
       overflow: hidden;
       z-index: 4;
-    }
-    .ls-mask-list { position: relative; width: 100%; height: 100%; }
-    .ls-mask-item {
-      position: absolute; inset: 0;
-      display: flex; align-items: center; justify-content: center;
+      -webkit-mask-image: linear-gradient(to right,
+        transparent 0%, black 9%, black 91%, transparent 100%);
+      mask-image: linear-gradient(to right,
+        transparent 0%, black 9%, black 91%, transparent 100%);
     }
 
-    /* ── Depth card ── */
+    /* ── Individual card ─────────────────────────────────────────────── */
+    .ls-mask-item {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      width: min(300px, 34vw);
+    }
+
+    /* ── Depth card with stacked layers ──────────────────────────────── */
     .depth-card {
       position: relative;
-      width: 90%; height: 90%;
+      width: 100%; height: 100%;
       border-radius: 14px;
-      transform: perspective(700px) rotateY(6deg) rotateX(3deg) scale(0.96);
-      transition: transform 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     }
-    .ls-mask-item[data-active] .depth-card {
-      transform: perspective(700px) rotateY(0deg) rotateX(0deg) scale(1);
-    }
-    /* Layer 1 — accent behind */
+    /* accent layer */
     .depth-card::before {
       content: '';
       position: absolute; inset: 0;
       border-radius: 14px;
-      background: rgba(124,58,237,0.22);
-      border: 1px solid rgba(124,58,237,0.3);
-      transform: translate(10px, 11px) rotate(1.8deg);
+      background: rgba(124,58,237,0.28);
+      border: 1px solid rgba(124,58,237,0.4);
+      transform: translate(10px, 12px) rotate(2deg);
       z-index: 0;
     }
-    /* Layer 2 — neutral further back */
+    /* neutral layer */
     .depth-card::after {
       content: '';
       position: absolute; inset: 0;
       border-radius: 14px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.055);
       border: 1px solid rgba(255,255,255,0.08);
-      transform: translate(20px, 22px) rotate(3.5deg);
+      transform: translate(20px, 24px) rotate(4deg);
       z-index: 0;
     }
     .ls-mask-img {
@@ -114,30 +118,28 @@
       border-radius: 14px;
       display: block;
       box-shadow:
-        0 2px  4px  rgba(0,0,0,0.3),
-        0 8px  20px rgba(0,0,0,0.55),
-        0 24px 60px rgba(0,0,0,0.7),
+        0 4px  8px  rgba(0,0,0,0.35),
+        0 12px 32px rgba(0,0,0,0.6),
+        0 28px 64px rgba(0,0,0,0.55),
         0 0 0 1px rgba(255,255,255,0.07);
     }
 
-    /* ── Title strip ── */
+    /* ── Title strip ─────────────────────────────────────────────────── */
     .ls-text-collection {
       position: absolute;
       bottom: 5.5rem; left: 0; right: 0;
-      overflow: hidden;
-      z-index: 5;
-      pointer-events: none;
+      overflow: hidden; z-index: 5; pointer-events: none;
     }
     .ls-text-list {
       position: relative;
       display: flex; align-items: center; justify-content: center;
       height: 5rem;
     }
-    .ls-text-item { position: absolute; pointer-events: auto; }
+    .ls-text-item   { position: absolute; pointer-events: auto; white-space: nowrap; }
     .ls-text-link {
-      font-size: clamp(2rem, 4.5vw, 3.5rem);
+      font-size: clamp(1.8rem, 3.8vw, 3.2rem);
       font-weight: 700;
-      color: rgba(255,255,255,0.28);
+      color: rgba(255,255,255,0.25);
       text-decoration: none;
       letter-spacing: -0.025em;
       line-height: 1;
@@ -145,83 +147,63 @@
     }
     .ls-text-item[data-active] .ls-text-link { color: #fff; }
 
-    /* ── Controls ── */
+    /* ── Controls overlay ────────────────────────────────────────────── */
     .ls-overlay {
-      position: absolute;
-      bottom: 1.75rem; left: 2rem; right: 2rem;
-      display: flex; align-items: center; justify-content: space-between;
-      z-index: 10;
+      position: absolute; bottom: 1.75rem; left: 2rem; right: 2rem;
+      display: flex; align-items: center; justify-content: space-between; z-index: 10;
     }
     .ls-progress {
       display: flex; align-items: center; gap: 0.75rem;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.7rem; letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.45);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.4);
     }
-    .ls-progress-bar {
-      width: 72px; height: 1px;
-      background: rgba(255,255,255,0.15);
-      overflow: hidden;
-    }
-    .ls-progress-fill {
-      height: 100%;
-      background: rgba(255,255,255,0.7);
-      transform-origin: left center;
-      transform: scaleX(0);
-    }
-    .ls-nav { display: flex; gap: 0.5rem; }
+    .ls-progress-bar   { width: 72px; height: 1px; background: rgba(255,255,255,0.14); overflow: hidden; }
+    .ls-progress-fill  { height: 100%; background: rgba(255,255,255,0.65); transform-origin: left center; transform: scaleX(0); }
+    .ls-nav            { display: flex; gap: 0.5rem; }
     .ls-button {
-      width: 2.4rem; height: 2.4rem;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.05);
+      width: 2.4rem; height: 2.4rem; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.05);
       color: #fff; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       backdrop-filter: blur(8px);
       transition: background 0.2s, border-color 0.2s;
     }
-    .ls-button:hover {
-      background: rgba(255,255,255,0.1);
-      border-color: rgba(255,255,255,0.35);
-    }
-    .ls-nav-icon { width: 0.9rem; height: 0.9rem; }
+    .ls-button:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.32); }
+    .ls-nav-icon { width: 0.85rem; height: 0.85rem; }
   </style>
 </head>
 <body>
-
   <div class="ls-page">
     <section class="layered-slider" id="slider">
 
-      <div class="ls-bg-collection">
-        <div id="bg-list"></div>
-      </div>
-
+      <div class="ls-bg-collection"><div id="bg-list"></div></div>
       <div class="ls-dark"></div>
 
+      <!-- Card track -->
       <div class="ls-mask-collection" id="mask-frame">
-        <div id="mask-list" class="ls-mask-list"></div>
+        <div id="mask-list"></div>
       </div>
 
+      <!-- Titles -->
       <div class="ls-text-collection">
         <div id="text-list" class="ls-text-list"></div>
       </div>
 
+      <!-- Counter + nav -->
       <div class="ls-overlay">
         <div class="ls-progress">
-          <span id="current">01</span>
-          <div class="ls-progress-bar">
-            <div id="fill" class="ls-progress-fill"></div>
-          </div>
-          <span id="total">10</span>
+          <span id="ls-current">01</span>
+          <div class="ls-progress-bar"><div id="ls-fill" class="ls-progress-fill"></div></div>
+          <span id="ls-total">10</span>
         </div>
         <div class="ls-nav">
-          <button id="prev" class="ls-button" aria-label="Previous">
+          <button id="ls-prev" class="ls-button" aria-label="Previous">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                  stroke-linecap="round" stroke-linejoin="round" class="ls-nav-icon">
               <path d="M15 6l-6 6 6 6"/>
             </svg>
           </button>
-          <button id="next" class="ls-button" aria-label="Next">
+          <button id="ls-next" class="ls-button" aria-label="Next">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
                  stroke-linecap="round" stroke-linejoin="round" class="ls-nav-icon">
               <path d="M9 6l6 6-6 6"/>
@@ -233,23 +215,22 @@
     </section>
   </div>
 
-  <!-- GSAP from CDN (requires internet) -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Observer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/CustomEase.min.js"></script>
   <script>
-    // ── Image data (inlined — no server needed) ──────────────────────────────
+    // ── Image data ────────────────────────────────────────────────────────────
     const IMAGES = [
-      { src: "https://picsum.photos/seed/void1/800/600",        title: "Void I",                year: "2024", medium: "Digital"     },
-      { src: "https://picsum.photos/seed/abyss2/800/600",       title: "Abyss II",              year: "2024", medium: "Generative"   },
-      { src: "https://picsum.photos/seed/singularity3/800/600", title: "Singularity",           year: "2023", medium: "Photography"  },
-      { src: "https://picsum.photos/seed/event4/800/600",       title: "Event Horizon",         year: "2024", medium: "Digital"      },
-      { src: "https://picsum.photos/seed/dark5/800/600",        title: "Dark Matter",           year: "2023", medium: "Mixed Media"  },
-      { src: "https://picsum.photos/seed/nebula6/800/600",      title: "Nebula VI",             year: "2024", medium: "Photography"  },
-      { src: "https://picsum.photos/seed/collapse7/800/600",    title: "Gravitational Collapse",year: "2022", medium: "Digital"      },
-      { src: "https://picsum.photos/seed/lensing8/800/600",     title: "Lensing",               year: "2024", medium: "Generative"   },
-      { src: "https://picsum.photos/seed/photon9/800/600",      title: "Photon Ring",           year: "2023", medium: "Digital"      },
-      { src: "https://picsum.photos/seed/accretion10/800/600",  title: "Accretion",             year: "2022", medium: "Mixed Media"  },
+      { src: "https://picsum.photos/seed/void1/800/600",        title: "Void I"                },
+      { src: "https://picsum.photos/seed/abyss2/800/600",       title: "Abyss II"              },
+      { src: "https://picsum.photos/seed/singularity3/800/600", title: "Singularity"           },
+      { src: "https://picsum.photos/seed/event4/800/600",       title: "Event Horizon"         },
+      { src: "https://picsum.photos/seed/dark5/800/600",        title: "Dark Matter"           },
+      { src: "https://picsum.photos/seed/nebula6/800/600",      title: "Nebula VI"             },
+      { src: "https://picsum.photos/seed/collapse7/800/600",    title: "Gravitational Collapse"},
+      { src: "https://picsum.photos/seed/lensing8/800/600",     title: "Lensing"               },
+      { src: "https://picsum.photos/seed/photon9/800/600",      title: "Photon Ring"           },
+      { src: "https://picsum.photos/seed/accretion10/800/600",  title: "Accretion"             },
     ];
 
     // ── Build DOM ─────────────────────────────────────────────────────────────
@@ -258,26 +239,23 @@
     const textList = document.getElementById('text-list');
 
     IMAGES.forEach(img => {
-      const bgItem = document.createElement('div');
-      bgItem.className = 'ls-bg-item';
-      bgItem.innerHTML = `<img src="${img.src}" alt="" class="ls-bg-img" loading="lazy">`;
-      bgList.appendChild(bgItem);
+      const b = document.createElement('div');
+      b.className = 'ls-bg-item';
+      b.innerHTML = `<img src="${img.src}" alt="" class="ls-bg-img" loading="lazy">`;
+      bgList.appendChild(b);
 
-      const maskItem = document.createElement('div');
-      maskItem.className = 'ls-mask-item';
-      maskItem.innerHTML = `
-        <div class="depth-card">
-          <img src="${img.src}" alt="${img.title}" class="ls-mask-img" draggable="false" loading="lazy">
-        </div>`;
-      maskList.appendChild(maskItem);
+      const m = document.createElement('div');
+      m.className = 'ls-mask-item';
+      m.innerHTML = `<div class="depth-card"><img src="${img.src}" alt="${img.title}" class="ls-mask-img" draggable="false" loading="lazy"></div>`;
+      maskList.appendChild(m);
 
-      const textItem = document.createElement('div');
-      textItem.className = 'ls-text-item';
-      textItem.innerHTML = `<a href="#" class="ls-text-link">${img.title}</a>`;
-      textList.appendChild(textItem);
+      const t = document.createElement('div');
+      t.className = 'ls-text-item';
+      t.innerHTML = `<a href="#" class="ls-text-link">${img.title}</a>`;
+      textList.appendChild(t);
     });
 
-    // ── Slider logic (GSAP) ───────────────────────────────────────────────────
+    // ── GSAP setup ────────────────────────────────────────────────────────────
     gsap.registerPlugin(Observer, CustomEase);
     CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
 
@@ -286,26 +264,26 @@
     const bgs       = [...root.querySelectorAll('.ls-bg-item')];
     const masks     = [...root.querySelectorAll('.ls-mask-item')];
     const maskFrame = document.getElementById('mask-frame');
-    const fill      = document.getElementById('fill');
-    const currentEl = document.getElementById('current');
-    const totalEl   = document.getElementById('total');
-    const prevBtn   = document.getElementById('prev');
-    const nextBtn   = document.getElementById('next');
-    const controls  = [...new Set([...titles, ...root.querySelectorAll('a, button')])];
+    const fill      = document.getElementById('ls-fill');
+    const currentEl = document.getElementById('ls-current');
+    const totalEl   = document.getElementById('ls-total');
 
     const count   = IMAGES.length;
-    const autoplay = 5;
-    const reduced  = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const clamp    = gsap.utils.clamp;
-    const wrap     = d => d - count * Math.round(d / count);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const clamp   = gsap.utils.clamp;
+    const wrap    = d => d - count * Math.round(d / count);
 
     if (totalEl) totalEl.textContent = String(count).padStart(2, '0');
 
-    let titleStep = 0, maskStep = 0;
+    // Measured each render cycle so resize is handled correctly
+    let titleStep = 0, maskStep = 0, cardCenterX = 0;
     const measure = () => {
       const widest = Math.max(...titles.map(t => t.offsetWidth));
-      titleStep = Math.max(root.clientWidth * 0.5, widest + 40);
-      maskStep  = maskFrame.clientWidth;
+      titleStep   = Math.max(root.clientWidth * 0.5, widest + 48);
+      const cardW  = masks[0] ? masks[0].offsetWidth : 300;
+      const gap    = 28;
+      maskStep    = cardW + gap;
+      cardCenterX = maskFrame.clientWidth / 2 - cardW / 2;
     };
     measure();
 
@@ -321,22 +299,43 @@
 
     const render = progress => {
       const centered = ((Math.round(progress) % count) + count) % count;
+
       for (let i = 0; i < count; i++) {
         const offset   = wrap(i - progress);
         const distance = Math.abs(offset);
-        const op = clamp(0, 1, 1 - distance);
-        gsap.set(bgs[i],    { opacity: op, zIndex: Math.round(op * 100) });
-        gsap.set(titles[i], { x: offset * titleStep, opacity: i === centered ? 1 : 0.4, pointerEvents: 'auto' });
-        gsap.set(masks[i],  { x: offset * maskStep });
+
+        // Background: crossfade between slides
+        gsap.set(bgs[i], {
+          opacity: clamp(0, 1, 1 - distance),
+          zIndex:  Math.round(clamp(0, 1, 1 - distance) * 100),
+        });
+
+        // Titles: slide horizontally, dim non-active
+        gsap.set(titles[i], {
+          x:             offset * titleStep,
+          opacity:       i === centered ? 1 : 0.28,
+          pointerEvents: 'auto',
+        });
+
+        // Cards: slide + subtle scale + fade beyond ±1
+        const cardOpacity = distance > 1.5 ? 0 : clamp(0, 1, 1.6 - distance);
+        const cardScale   = clamp(0.88, 1, 1 - distance * 0.055);
+        gsap.set(masks[i], {
+          x:       cardCenterX + offset * maskStep,
+          scale:   cardScale,
+          opacity: cardOpacity,
+          zIndex:  100 - Math.round(distance * 10),
+        });
       }
+
       if (centered !== activeIndex) {
-        const prev = activeIndex;
+        setActive(activeIndex, centered);
         activeIndex = centered;
-        setActive(prev, centered);
         if (currentEl) currentEl.textContent = String(centered + 1).padStart(2, '0');
       }
     };
 
+    // ── Autoplay ──────────────────────────────────────────────────────────────
     let hovering = 0, autoTween = null;
     const startAutoplay = () => {
       if (!autoTween) return;
@@ -344,8 +343,17 @@
       if (hovering > 0) autoTween.pause();
     };
 
+    if (!reduced && fill) {
+      gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
+      autoTween = gsap.to(fill, {
+        scaleX: 1, duration: 5, ease: 'none', paused: true,
+        onComplete: () => goTo(1),
+      });
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
     let slideTween = null, current = 0;
-    const goTo = delta => {
+    function goTo(delta) {
       current += delta;
       if (slideTween) slideTween.kill();
       slideTween = gsap.to(state, {
@@ -355,27 +363,11 @@
         onUpdate: () => render(state.progress),
       });
       startAutoplay();
-    };
+    }
     const goToIndex = i => { const d = wrap(i - current); if (d !== 0) goTo(d); };
 
-    if (autoplay > 0 && !reduced && fill) {
-      gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
-      autoTween = gsap.to(fill, {
-        scaleX: 1, duration: autoplay, ease: 'none', paused: true,
-        onComplete: () => goTo(1),
-      });
-    }
-
-    let gestureUsed = false;
-    Observer.create({
-      target: root, type: 'touch,pointer', dragMinimum: 10, tolerance: 25, lockAxis: true,
-      onDragStart() { gestureUsed = false; },
-      onLeft()  { if (!gestureUsed) { gestureUsed = true; goTo(1);  } },
-      onRight() { if (!gestureUsed) { gestureUsed = true; goTo(-1); } },
-    });
-
-    prevBtn.addEventListener('click', () => goTo(-1));
-    nextBtn.addEventListener('click', () => goTo(1));
+    document.getElementById('ls-prev').addEventListener('click', () => goTo(-1));
+    document.getElementById('ls-next').addEventListener('click', () => goTo(1));
 
     titles.forEach(title => title.addEventListener('click', e => {
       const i = titles.indexOf(e.currentTarget);
@@ -384,7 +376,17 @@
       goToIndex(i);
     }));
 
-    controls.forEach(el => {
+    // ── Swipe ─────────────────────────────────────────────────────────────────
+    let gestureUsed = false;
+    Observer.create({
+      target: root, type: 'touch,pointer', dragMinimum: 10, tolerance: 25, lockAxis: true,
+      onDragStart() { gestureUsed = false; },
+      onLeft()  { if (!gestureUsed) { gestureUsed = true; goTo(1);  } },
+      onRight() { if (!gestureUsed) { gestureUsed = true; goTo(-1); } },
+    });
+
+    // ── Hover pauses autoplay ─────────────────────────────────────────────────
+    [...new Set([...titles, ...root.querySelectorAll('a, button')])].forEach(el => {
       el.addEventListener('pointerenter', () => { hovering++; if (autoTween) autoTween.pause(); });
       el.addEventListener('pointerleave', () => {
         hovering = Math.max(0, hovering - 1);
@@ -392,10 +394,12 @@
       });
     });
 
+    // ── Resize ────────────────────────────────────────────────────────────────
     const onResize = () => { measure(); render(state.progress); };
     window.addEventListener('resize', onResize);
     if (document.fonts) document.fonts.ready.then(onResize);
 
+    // ── Init ──────────────────────────────────────────────────────────────────
     render(0);
     startAutoplay();
   </script>
