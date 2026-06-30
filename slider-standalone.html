@@ -68,7 +68,7 @@
       left: 0; right: 0;
       top: 50%;
       transform: translateY(-54%);
-      height: min(460px, 60vh);
+      height: min(360px, 50vh);
       overflow: hidden;
       z-index: 4;
       -webkit-mask-image: linear-gradient(to right,
@@ -82,7 +82,10 @@
       position: absolute;
       top: 0;
       height: 100%;
-      width: min(300px, 34vw);
+      width: min(240px, 26vw);
+      /* room for depth layers without overflowing into adjacent cards */
+      padding: 0 18px 18px 0;
+      overflow: visible; /* layers clip at mask-collection level */
     }
 
     /* ── Depth card with stacked layers ──────────────────────────────── */
@@ -90,26 +93,28 @@
       position: relative;
       width: 100%; height: 100%;
       border-radius: 14px;
+      /* create stacking context so layers stay behind the image */
+      isolation: isolate;
     }
-    /* accent layer */
+    /* accent layer — peeks from behind, contained within mask-item padding */
     .depth-card::before {
       content: '';
       position: absolute; inset: 0;
       border-radius: 14px;
-      background: rgba(124,58,237,0.28);
-      border: 1px solid rgba(124,58,237,0.4);
-      transform: translate(10px, 12px) rotate(2deg);
-      z-index: 0;
+      background: rgba(124,58,237,0.32);
+      border: 1px solid rgba(124,58,237,0.45);
+      transform: translate(9px, 10px) rotate(1.8deg);
+      z-index: -1;
     }
-    /* neutral layer */
+    /* neutral layer — further back */
     .depth-card::after {
       content: '';
       position: absolute; inset: 0;
       border-radius: 14px;
-      background: rgba(255,255,255,0.055);
-      border: 1px solid rgba(255,255,255,0.08);
-      transform: translate(20px, 24px) rotate(4deg);
-      z-index: 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.09);
+      transform: translate(17px, 18px) rotate(3.5deg);
+      z-index: -2;
     }
     .ls-mask-img {
       position: relative; z-index: 1;
