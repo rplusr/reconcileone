@@ -40,7 +40,7 @@
     }
 
     /* ── Background images ───────────────────────────────────────────── */
-    .ls-bg-collection { position: absolute; inset: 0; }
+    .ls-bg-collection { position: absolute; inset: 0; z-index: 0; }
     .ls-bg-item       { position: absolute; inset: 0; pointer-events: none; }
     .ls-bg-img {
       width: 100%; height: 100%;
@@ -309,10 +309,10 @@
         const offset   = wrap(i - progress);
         const distance = Math.abs(offset);
 
-        // Background: crossfade between slides
+        // Background: crossfade between slides (z-index stays low, never above cards)
         gsap.set(bgs[i], {
           opacity: clamp(0, 1, 1 - distance),
-          zIndex:  Math.round(clamp(0, 1, 1 - distance) * 100),
+          zIndex:  Math.round(clamp(0, 1, 1 - distance) * 10),
         });
 
         // Titles: slide horizontally, dim non-active
