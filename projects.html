@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects</title>
+  <style>
+    @font-face {
+      font-family: 'SundayMasthead';
+      src: url('public/fonts/SundayMasthead-Regular.woff2') format('woff2'),
+           url('public/fonts/SundayMasthead-Regular.woff') format('woff');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background: #f5f2ec;
+      color: #111;
+      font-family: 'SundayMasthead', serif;
+      min-height: 100vh;
+    }
+
+    .projects {
+      padding: 80px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .project {
+      border-top: 1px solid #111;
+      padding: 40px 0 36px;
+    }
+
+    .project:last-child {
+      border-bottom: 1px solid #111;
+    }
+
+    .project-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-family: monospace;
+      margin-bottom: 18px;
+      color: #555;
+    }
+
+    .project-headline {
+      font-family: 'SundayMasthead', serif;
+      font-size: clamp(52px, 7vw, 96px);
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+      cursor: default;
+      display: inline-block;
+      position: relative;
+      word-spacing: 0em;
+      transition: word-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Thumbnail that appears inside the word gap */
+    .project-headline .thumb {
+      display: inline-block;
+      width: 0;
+      height: 0.75em;
+      vertical-align: middle;
+      overflow: hidden;
+      position: relative;
+      top: -0.05em;
+      transition:
+        width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        margin 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 4px;
+    }
+
+    .project-headline .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .project-headline:hover .thumb {
+      width: calc(0.75em * 1.6);
+      margin: 0 0.15em;
+    }
+
+    .project-desc {
+      margin-top: 20px;
+      font-family: monospace;
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 0.04em;
+      max-width: 420px;
+    }
+  </style>
+</head>
+<body>
+  <div class="projects">
+
+    <div class="project">
+      <div class="project-meta">
+        <span>01 — Brand Identity</span>
+        <span>2024</span>
+      </div>
+      <div class="project-headline">
+        Hollow<span class="thumb"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&q=80" alt=""></span>Ground
+      </div>
+      <div class="project-desc">Visual identity for a landscape architecture studio based in Oslo.</div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span>02 — Editorial</span>
+        <span>2024</span>
+      </div>
+      <div class="project-headline">
+        Salt<span class="thumb"><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=300&q=80" alt=""></span>Press
+      </div>
+      <div class="project-desc">Annual report and publishing system for an independent press.</div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span>03 — Digital</span>
+        <span>2023</span>
+      </div>
+      <div class="project-headline">
+        Mirror<span class="thumb"><img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=300&q=80" alt=""></span>Field
+      </div>
+      <div class="project-desc">Interactive installation for a contemporary art fair in Berlin.</div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span>04 — Campaign</span>
+        <span>2023</span>
+      </div>
+      <div class="project-headline">
+        Slow<span class="thumb"><img src="https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&q=80" alt=""></span>Burn
+      </div>
+      <div class="project-desc">Season campaign for a Scandinavian outdoor clothing brand.</div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span>05 — Wayfinding</span>
+        <span>2022</span>
+      </div>
+      <div class="project-headline">
+        Stone<span class="thumb"><img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=300&q=80" alt=""></span>Path
+      </div>
+      <div class="project-desc">Environmental graphics and wayfinding system for a mountain resort.</div>
+    </div>
+
+  </div>
+</body>
+</html>
