@@ -26,6 +26,74 @@
       min-height: 100vh;
     }
 
+    /* ── Preloader ── */
+    #preloader {
+      position: fixed;
+      inset: 0;
+      background: #f5f2ec;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+
+    #preloader-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: monospace;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #555;
+      text-align: center;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    #preloader-label.hidden {
+      opacity: 0;
+    }
+
+    #rock-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #preloader-click {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: monospace;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #999;
+      opacity: 0;
+      transition: opacity 0.6s;
+      cursor: pointer;
+      background: none;
+      border: none;
+      pointer-events: none;
+    }
+
+    #preloader-click.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #preloader.fade-out {
+      transition: opacity 0.7s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ── Projects ── */
     .projects {
       padding: 80px 60px;
       max-width: 1200px;
@@ -64,7 +132,6 @@
       transition: word-spacing 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Thumbnail that appears inside the word gap */
     .project-headline .thumb {
       display: inline-block;
       width: 0;
@@ -103,6 +170,15 @@
   </style>
 </head>
 <body>
+
+  <!-- Preloader -->
+  <div id="preloader">
+    <canvas id="rock-canvas"></canvas>
+    <p id="preloader-label">Relax and stack these rocks.</p>
+    <button id="preloader-click">Click anywhere to continue</button>
+  </div>
+
+  <!-- Projects -->
   <div class="projects">
 
     <div class="project">
@@ -161,5 +237,227 @@
     </div>
 
   </div>
+
+  <script src="public/matter.min.js"></script>
+  <script>
+  (function () {
+    // ── Rock PNG generation ──────────────────────────────────────────────────
+    function seededRand(seed) {
+      let s = seed;
+      return function () {
+        s = (s * 1664525 + 1013904223) & 0xffffffff;
+        return (s >>> 0) / 0xffffffff;
+      };
+    }
+
+    // Returns { img, physRadius, w, h, sides, verts }
+    // Physics body = regular polygon with `sides` sides of radius `physRadius`
+    // Visual = hand-drawn jagged rock PNG centred on a baseW×baseH canvas
+    function makeRockTemplate(seed, baseW, baseH) {
+      const rand = seededRand(seed);
+      const sides = 7 + Math.floor(rand() * 4);   // 7–10 sides
+      const cx = baseW / 2, cy = baseH / 2;
+      const rx = baseW * 0.40, ry = baseH * 0.38;
+
+      // Jagged outline (visual only)
+      const vizVerts = [];
+      for (let i = 0; i < sides; i++) {
+        const angle = (i / sides) * Math.PI * 2 - Math.PI / 2;
+        const jitter = 0.62 + rand() * 0.36;
+        vizVerts.push({
+          x: cx + Math.cos(angle) * rx * jitter,
+          y: cy + Math.sin(angle) * ry * jitter
+        });
+      }
+
+      // Draw PNG
+      const oc = document.createElement('canvas');
+      oc.width  = baseW;
+      oc.height = baseH;
+      const gc = oc.getContext('2d');
+
+      const lum  = 148 + Math.floor(rand() * 52);
+      const warm = Math.floor(rand() * 14);
+
+      // Drop shadow
+      gc.save();
+      gc.translate(4, 5);
+      gc.beginPath();
+      gc.moveTo(vizVerts[0].x, vizVerts[0].y);
+      vizVerts.forEach(v => gc.lineTo(v.x, v.y));
+      gc.closePath();
+      gc.fillStyle = 'rgba(0,0,0,0.13)';
+      gc.fill();
+      gc.restore();
+
+      // Rock fill with radial gradient
+      gc.beginPath();
+      gc.moveTo(vizVerts[0].x, vizVerts[0].y);
+      vizVerts.forEach(v => gc.lineTo(v.x, v.y));
+      gc.closePath();
+
+      const grd = gc.createRadialGradient(
+        cx - rx * 0.22, cy - ry * 0.22, rx * 0.04,
+        cx, cy, Math.max(rx, ry)
+      );
+      grd.addColorStop(0,   `rgb(${lum+30+warm},${lum+28},${lum+20})`);
+      grd.addColorStop(0.55,`rgb(${lum+warm},${lum},${lum-warm})`);
+      grd.addColorStop(1,   `rgb(${lum-38+warm},${lum-38},${lum-42})`);
+      gc.fillStyle = grd;
+      gc.fill();
+
+      // Outline
+      gc.strokeStyle = 'rgba(0,0,0,0.20)';
+      gc.lineWidth = 1.4;
+      gc.stroke();
+
+      // Crack lines
+      for (let c = 0; c < 2; c++) {
+        const sx = cx + (rand()-0.5)*rx*0.9, sy = cy + (rand()-0.5)*ry*0.9;
+        const ex = sx + (rand()-0.5)*rx*0.55, ey = sy + (rand()-0.5)*ry*0.55;
+        gc.beginPath(); gc.moveTo(sx,sy); gc.lineTo(ex,ey);
+        gc.strokeStyle = `rgba(0,0,0,${0.05+rand()*0.07})`;
+        gc.lineWidth = 0.7;
+        gc.stroke();
+      }
+
+      // Highlight sliver
+      gc.beginPath();
+      gc.moveTo(vizVerts[1].x, vizVerts[1].y);
+      gc.lineTo(vizVerts[2].x, vizVerts[2].y);
+      gc.strokeStyle = 'rgba(255,255,255,0.22)';
+      gc.lineWidth = 1.8;
+      gc.stroke();
+
+      const img = new Image();
+      img.src = oc.toDataURL('image/png');
+
+      // Physics radius = average of rx/ry (used with Bodies.polygon)
+      const physRadius = (rx + ry) / 2 * 0.88;
+
+      return { img, physRadius, sides, w: baseW, h: baseH };
+    }
+
+    // Pre-generate 8 rock templates
+    const TEMPLATES = [
+      [90,68],[76,58],[108,80],[64,52],
+      [96,72],[82,62],[114,84],[70,54]
+    ].map(([w,h],i) => makeRockTemplate(i*37+11, w, h));
+
+    // ── Matter.js setup ──────────────────────────────────────────────────────
+    const { Engine, Runner, Bodies, Body, World } = Matter;
+
+    const canvas    = document.getElementById('rock-canvas');
+    const preloader = document.getElementById('preloader');
+    const label     = document.getElementById('preloader-label');
+    const clickBtn  = document.getElementById('preloader-click');
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resize();
+
+    const engine = Engine.create({ gravity: { y: 1.6 } });
+    const world  = engine.world;
+    const ctx    = canvas.getContext('2d');
+
+    const W = () => canvas.width;
+    const H = () => canvas.height;
+
+    let boundaries = [];
+    function makeBoundaries() {
+      if (boundaries.length) World.remove(world, boundaries);
+      const thick = 80;
+      boundaries = [
+        Bodies.rectangle(W()/2, H() + thick/2, W()*4, thick, { isStatic:true }),
+        Bodies.rectangle(-thick/2, H()/2, thick, H()*4, { isStatic:true }),
+        Bodies.rectangle(W()+thick/2, H()/2, thick, H()*4, { isStatic:true }),
+      ];
+      World.add(world, boundaries);
+    }
+    makeBoundaries();
+
+    const rocks = [];
+
+    function spawnRock(i) {
+      const tpl = TEMPLATES[i % TEMPLATES.length];
+      const x   = W() * 0.15 + Math.random() * W() * 0.70;
+      const y   = -tpl.h * 0.5;
+
+      // Regular polygon body — reliable without poly-decomp
+      const body = Bodies.polygon(x, y, tpl.sides, tpl.physRadius, {
+        restitution: 0.15,
+        friction:    0.65,
+        frictionAir: 0.016,
+        density:     0.004,
+      });
+
+      Body.setAngle(body, (Math.random()-0.5) * Math.PI);
+      Body.setVelocity(body, { x: (Math.random()-0.5)*2.5, y: 1 });
+      World.add(world, body);
+      rocks.push({ body, tpl });
+    }
+
+    // ── Drop sequence ────────────────────────────────────────────────────────
+    const ROCK_COUNT = 20;
+    let dropped = 0;
+
+    function dropNext() {
+      if (dropped < ROCK_COUNT) {
+        spawnRock(dropped++);
+        setTimeout(dropNext, 160 + Math.random() * 200);
+      }
+    }
+
+    setTimeout(() => label.classList.add('hidden'), 500);
+
+    // Show "click" prompt once all rocks have settled
+    const settleInterval = setInterval(() => {
+      if (dropped < ROCK_COUNT) return;
+      const allStill = rocks.every(r => {
+        const v = r.body.velocity;
+        return Math.abs(v.x) < 0.3 && Math.abs(v.y) < 0.3;
+      });
+      if (allStill) {
+        clickBtn.classList.add('visible');
+        clearInterval(settleInterval);
+      }
+    }, 400);
+
+    // ── Render loop ──────────────────────────────────────────────────────────
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, W(), H());
+      rocks.forEach(({ body, tpl }) => {
+        const { x, y } = body.position;
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(body.angle);
+        ctx.drawImage(tpl.img, -tpl.w/2, -tpl.h/2, tpl.w, tpl.h);
+        ctx.restore();
+      });
+      requestAnimationFrame(drawFrame);
+    }
+
+    setTimeout(() => { dropNext(); drawFrame(); }, 300);
+
+    // ── Dismiss ──────────────────────────────────────────────────────────────
+    function dismiss() {
+      preloader.classList.add('fade-out');
+      setTimeout(() => { preloader.style.display = 'none'; }, 700);
+    }
+
+    preloader.addEventListener('click', () => {
+      if (clickBtn.classList.contains('visible')) dismiss();
+    });
+    clickBtn.addEventListener('click', e => { e.stopPropagation(); dismiss(); });
+
+    window.addEventListener('resize', () => { resize(); makeBoundaries(); });
+  })();
+  </script>
+
 </body>
 </html>
