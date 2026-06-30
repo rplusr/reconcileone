@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/friendly-wright-so865, main]
+    branches: [claude/friendly-wright-so865, main, claude/image-slider-padding-depth-genlpv]
 
 permissions:
   contents: read
