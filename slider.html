@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Layered Slider</title>
+  <link rel="stylesheet" href="./public/style.css" />
+  <style>
+    html, body {
+      overflow: hidden;
+      background: #080808;
+    }
+
+    /* ── Page wrapper – provides the visible padding around the slider ── */
+    .ls-page {
+      width: 100vw;
+      height: 100vh;
+      padding: 2.25rem 2.5rem;
+      display: flex;
+      align-items: stretch;
+      box-sizing: border-box;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 50%, rgba(124,58,237,0.04) 0%, transparent 60%),
+        #080808;
+    }
+
+    /* ── Slider root ─────────────────────────────────────────────────── */
+    .layered-slider {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #000;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 32px 80px rgba(0,0,0,0.8),
+        0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    /* ── Backgrounds ─────────────────────────────────────────────────── */
+    .layered-slider__bg-collection {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .layered-slider__bg-item {
+      position: absolute;
+      inset: 0;
+    }
+    .layered-slider__bg-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(14px) brightness(0.38) saturate(1.3);
+      transform: scale(1.1);
+    }
+
+    /* dark gradient overlay */
+    .layered-slider__dark {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to top,   rgba(0,0,0,0.85) 0%,   rgba(0,0,0,0.2) 45%, transparent 100%),
+        linear-gradient(to right,  rgba(0,0,0,0.35) 0%, transparent 40%),
+        linear-gradient(to left,   rgba(0,0,0,0.35) 0%, transparent 40%);
+      z-index: 2;
+    }
+
+    /* ── Thumbnail / mask frame ──────────────────────────────────────── */
+    .layered-slider__mask-collection {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -56%);
+      width: min(380px, 48vw);
+      height: min(500px, 62vh);
+      overflow: hidden;           /* clips the horizontal slide track */
+      z-index: 4;
+    }
+    .layered-slider__mask-list {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .layered-slider__mask-item {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Depth card ──────────────────────────────────────────────────── */
+    /*
+     * The depth-card wraps the image + decorative layer cards.
+     * Pseudo-elements are translated inward so they stay within
+     * the clipped mask-collection bounds.
+     */
+    .depth-card {
+      position: relative;
+      width: 90%;
+      height: 90%;
+      border-radius: 14px;
+    }
+
+    /* Layer 2 – furthest back, muted */
+    .depth-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      transform: translate(20px, 22px) rotate(3.5deg);
+      z-index: 0;
+    }
+
+    /* Layer 1 – middle, accent-tinted */
+    .depth-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 14px;
+      background: rgba(124,58,237,0.22);
+      border: 1px solid rgba(124,58,237,0.3);
+      transform: translate(10px, 11px) rotate(1.8deg);
+      z-index: 0;
+    }
+
+    /* The actual image – on top */
+    .layered-slider__mask-img {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+      box-shadow:
+        0 2px  4px  rgba(0,0,0,0.3),
+        0 8px  20px rgba(0,0,0,0.55),
+        0 24px 60px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(255,255,255,0.07);
+    }
+
+    /* Subtle 3D tilt on inactive slides; flattens when active */
+    .layered-slider__mask-item .depth-card {
+      transform: perspective(700px) rotateY(6deg) rotateX(3deg) scale(0.96);
+      transition: transform 0.75s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .layered-slider__mask-item[data-active] .depth-card {
+      transform: perspective(700px) rotateY(0deg) rotateX(0deg) scale(1);
+    }
+
+    /* ── Title strip ─────────────────────────────────────────────────── */
+    .layered-slider__text-collection {
+      position: absolute;
+      bottom: 5.5rem;
+      left: 0;
+      right: 0;
+      overflow: hidden;
+      z-index: 5;
+      pointer-events: none;
+    }
+    .layered-slider__text-list {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 5rem;
+    }
+    .layered-slider__text-item {
+      position: absolute;
+      pointer-events: auto;
+    }
+    .layered-slider__text-link {
+      font-size: clamp(2rem, 4.5vw, 3.5rem);
+      font-weight: 700;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      display: block;
+      transition: color 0.3s;
+    }
+    .layered-slider__text-item:not([data-active]) .layered-slider__text-link {
+      color: rgba(255,255,255,0.28);
+    }
+
+    /* ── Bottom controls ─────────────────────────────────────────────── */
+    .layered-slider__overlay {
+      position: absolute;
+      bottom: 1.75rem;
+      left: 2rem;
+      right: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 10;
+    }
+
+    .layered-slider__progress {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.45);
+    }
+    .layered-slider__progress-bar {
+      width: 72px;
+      height: 1px;
+      background: rgba(255,255,255,0.15);
+      overflow: hidden;
+    }
+    .layered-slider__progress-fill {
+      height: 100%;
+      background: rgba(255,255,255,0.7);
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+
+    .layered-slider__nav {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .layered-slider__button {
+      width: 2.4rem;
+      height: 2.4rem;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .layered-slider__button:hover {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.35);
+    }
+    .layered-slider__nav-icon {
+      width: 0.9rem;
+      height: 0.9rem;
+    }
+
+    /* ── Back link ───────────────────────────────────────────────────── */
+    #back-link {
+      position: fixed;
+      top: 1rem;
+      left: 1.5rem;
+      z-index: 200;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.25);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    #back-link:hover { color: rgba(255,255,255,0.6); }
+  </style>
+</head>
+<body>
+
+  <a id="back-link" href="./index.html">← Gallery</a>
+
+  <div class="ls-page">
+    <section
+      data-layered-slider-autoplay="5"
+      data-layered-slider-init=""
+      class="layered-slider"
+    >
+      <!-- Blurred background images -->
+      <div class="layered-slider__bg-collection">
+        <div id="bg-list" class="layered-slider__bg-list"></div>
+      </div>
+
+      <!-- Dark vignette overlay -->
+      <div class="layered-slider__dark"></div>
+
+      <!-- Foreground thumbnail with depth layers -->
+      <div data-layered-slider-mask="" class="layered-slider__mask-collection">
+        <div id="mask-list" class="layered-slider__mask-list"></div>
+      </div>
+
+      <!-- Sliding title links -->
+      <div class="layered-slider__text-collection">
+        <div id="text-list" class="layered-slider__text-list"></div>
+      </div>
+
+      <!-- Progress counter + prev/next -->
+      <div class="layered-slider__overlay">
+        <div class="layered-slider__progress">
+          <span data-layered-slider-current="">01</span>
+          <div class="layered-slider__progress-bar">
+            <div data-layered-slider-fill="" class="layered-slider__progress-fill"></div>
+          </div>
+          <span data-layered-slider-total="">10</span>
+        </div>
+        <div class="layered-slider__nav">
+          <button data-layered-slider-prev="" class="layered-slider__button" aria-label="Previous">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" class="layered-slider__nav-icon">
+              <path d="M15 6l-6 6 6 6"/>
+            </svg>
+          </button>
+          <button data-layered-slider-next="" class="layered-slider__button" aria-label="Next">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 stroke-linecap="round" stroke-linejoin="round" class="layered-slider__nav-icon">
+              <path d="M9 6l6 6-6 6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/Observer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/CustomEase.min.js"></script>
+  <script>
+    gsap.registerPlugin(Observer, CustomEase);
+    CustomEase.create("osmo", "M0,0 C0.625,0.05 0,1 1,1");
+
+    fetch('./cms/images.json')
+      .then(r => r.json())
+      .then(({ images }) => {
+        const bgList   = document.getElementById('bg-list');
+        const maskList = document.getElementById('mask-list');
+        const textList = document.getElementById('text-list');
+
+        images.forEach(img => {
+          // Blurred background
+          const bgItem = document.createElement('div');
+          bgItem.setAttribute('data-layered-slider-bg', '');
+          bgItem.className = 'layered-slider__bg-item';
+          bgItem.innerHTML = `<img src="${img.src}" alt="" class="layered-slider__bg-img" loading="lazy">`;
+          bgList.appendChild(bgItem);
+
+          // Depth thumbnail
+          const maskItem = document.createElement('div');
+          maskItem.setAttribute('data-layered-slider-mask-item', '');
+          maskItem.className = 'layered-slider__mask-item';
+          maskItem.innerHTML = `
+            <div class="depth-card">
+              <img src="${img.src}" alt="${img.title}" class="layered-slider__mask-img" draggable="false" loading="lazy">
+            </div>`;
+          maskList.appendChild(maskItem);
+
+          // Title link
+          const textItem = document.createElement('div');
+          textItem.setAttribute('data-layered-slider-title', '');
+          textItem.className = 'layered-slider__text-item';
+          textItem.innerHTML = `<a href="#" class="layered-slider__text-link">${img.title}</a>`;
+          textList.appendChild(textItem);
+        });
+
+        initSlider();
+      });
+
+    function initSlider() {
+      const root = document.querySelector('[data-layered-slider-init]');
+      if (!root) return;
+
+      const titles     = [...root.querySelectorAll('[data-layered-slider-title]')];
+      if (!titles.length) return;
+      const count      = titles.length;
+      const backgrounds = [...root.querySelectorAll('[data-layered-slider-bg]')];
+      const maskItems  = [...root.querySelectorAll('[data-layered-slider-mask-item]')];
+      const maskFrame  = root.querySelector('[data-layered-slider-mask]');
+      const fill       = root.querySelector('[data-layered-slider-fill]');
+      const currentEl  = root.querySelector('[data-layered-slider-current]');
+      const totalEl    = root.querySelector('[data-layered-slider-total]');
+      const prevBtn    = root.querySelector('[data-layered-slider-prev]');
+      const nextBtn    = root.querySelector('[data-layered-slider-next]');
+      const controls   = [...new Set([...titles, ...root.querySelectorAll('a, button')])];
+
+      const autoplay   = parseFloat(root.getAttribute('data-layered-slider-autoplay') || '5');
+      const reduced    = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const clamp      = gsap.utils.clamp;
+      const wrap       = d => d - count * Math.round(d / count);
+
+      if (totalEl) totalEl.textContent = String(count).padStart(2, '0');
+
+      let titleStep = 0, maskStep = 0;
+      const measure = () => {
+        const widest = Math.max(...titles.map(t => t.offsetWidth));
+        titleStep = Math.max(root.clientWidth * 0.5, widest + 40);
+        maskStep  = maskFrame ? maskFrame.clientWidth : root.clientWidth;
+      };
+      measure();
+
+      const state = { progress: 0 };
+      let activeIndex = -1;
+
+      const setActive = (prev, idx) => {
+        [backgrounds, titles, maskItems].forEach(list => {
+          if (prev >= 0 && list[prev]) list[prev].removeAttribute('data-active');
+          if (list[idx])               list[idx].setAttribute('data-active', '');
+        });
+      };
+
+      const render = progress => {
+        const centered = ((Math.round(progress) % count) + count) % count;
+        for (let i = 0; i < count; i++) {
+          const offset   = wrap(i - progress);
+          const distance = Math.abs(offset);
+          const bg = backgrounds[i];
+          if (bg) {
+            const op = clamp(0, 1, 1 - distance);
+            gsap.set(bg, { opacity: op, zIndex: Math.round(op * 100) });
+          }
+          gsap.set(titles[i], { x: offset * titleStep, opacity: i === centered ? 1 : 0.4, pointerEvents: 'auto' });
+          if (maskItems[i]) gsap.set(maskItems[i], { x: offset * maskStep });
+        }
+        if (centered !== activeIndex) {
+          const prev = activeIndex;
+          activeIndex = centered;
+          setActive(prev, centered);
+          if (currentEl) currentEl.textContent = String(centered + 1).padStart(2, '0');
+        }
+      };
+
+      let hovering = 0, autoTween = null;
+      const startAutoplay = () => {
+        if (!autoTween) return;
+        autoTween.restart();
+        if (hovering > 0) autoTween.pause();
+      };
+
+      let slideTween = null, current = 0;
+      const goTo = delta => {
+        current += delta;
+        if (slideTween) slideTween.kill();
+        slideTween = gsap.to(state, {
+          progress: current,
+          duration: reduced ? 0 : 1,
+          ease: 'osmo',
+          onUpdate: () => render(state.progress),
+        });
+        startAutoplay();
+      };
+      const goToIndex = i => { const d = wrap(i - current); if (d !== 0) goTo(d); };
+
+      if (autoplay > 0 && !reduced && fill) {
+        gsap.set(fill, { scaleX: 0, transformOrigin: 'left center' });
+        autoTween = gsap.to(fill, {
+          scaleX: 1, duration: autoplay, ease: 'none', paused: true,
+          onComplete: () => goTo(1),
+        });
+      }
+
+      let gestureUsed = false;
+      Observer.create({
+        target: root, type: 'touch,pointer', dragMinimum: 10, tolerance: 25, lockAxis: true,
+        onDragStart() { gestureUsed = false; },
+        onLeft()  { if (!gestureUsed) { gestureUsed = true; goTo(1);  } },
+        onRight() { if (!gestureUsed) { gestureUsed = true; goTo(-1); } },
+      });
+
+      if (prevBtn) prevBtn.addEventListener('click', () => goTo(-1));
+      if (nextBtn) nextBtn.addEventListener('click', () => goTo(1));
+
+      titles.forEach(title => title.addEventListener('click', e => {
+        const i = titles.indexOf(e.currentTarget);
+        if (i === activeIndex) return;
+        e.preventDefault();
+        goToIndex(i);
+      }));
+
+      controls.forEach(el => {
+        el.addEventListener('pointerenter', () => { hovering++; if (autoTween) autoTween.pause(); });
+        el.addEventListener('pointerleave', () => {
+          hovering = Math.max(0, hovering - 1);
+          if (autoTween && hovering === 0) autoTween.resume();
+        });
+      });
+
+      const onResize = () => { measure(); render(state.progress); };
+      window.addEventListener('resize', onResize);
+      if (document.fonts) document.fonts.ready.then(onResize);
+
+      render(0);
+      startAutoplay();
+    }
+  </script>
+</body>
+</html>
