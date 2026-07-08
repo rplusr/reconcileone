@@ -72,7 +72,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 #home-carousel-wrap.carousel-mode{
   margin-left:calc(-1 * var(--page-margin));
   margin-right:calc(-1 * var(--page-margin));
-  overflow:hidden;
+  overflow-x:clip;
+  overflow-y:visible;
   cursor:ew-resize;
   touch-action:pan-y;
   /* fill exactly the space between work-bar and sticky-bottom, then centre strip */
@@ -1291,7 +1292,7 @@ function renderGrid(projects) {
   grid.style.gap = '';
 
   const heightMults = [1, 0.72, 0.88, 0.64, 1, 0.78];
-  const baseH = 'clamp(260px,44vh,540px)';
+  const baseH = 'calc(clamp(260px,44vh,540px) - 52px)';
 
   projects.forEach((p, i) => {
     const card = document.createElement('div');
