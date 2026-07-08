@@ -111,11 +111,10 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   align-items:flex-start;
   cursor:pointer
 }
-/* Image container — clips the image and handles the height */
+/* Image container — height fixed by JS, width driven by image natural ratio */
 .carousel-card .c-img-box{
   position:relative;
-  flex-shrink:0;
-  overflow:hidden
+  flex-shrink:0
 }
 .carousel-card .c-img-box::after{
   content:'';
@@ -129,10 +128,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .carousel-card:hover .c-img-box::after{opacity:1}
 .carousel-card .c-img{
   display:block;
-  width:100%;
   height:100%;
-  object-fit:cover;
-  object-position:center top;
+  width:auto;
   will-change:transform;
   transition:transform 0.7s cubic-bezier(0.22,1,0.36,1)
 }
@@ -1322,9 +1319,6 @@ function renderGrid(projects) {
     const imgBox = document.createElement('div');
     imgBox.className = 'c-img-box';
     imgBox.style.height = boxH;
-    // Width starts at a placeholder; corrected once image loads
-    const fallbackAspect = parseAspect(p.aspect);
-    imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
 
     if (p.image) {
       const img = document.createElement('img');
@@ -1333,15 +1327,11 @@ function renderGrid(projects) {
       img.alt = p.title || '';
       img.decoding = 'async';
       img.draggable = false;
-      img.onload = () => {
-        if (img.naturalWidth && img.naturalHeight) {
-          const nat = img.naturalWidth / img.naturalHeight;
-          imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${nat.toFixed(4)})`;
-          if (typeof setCarouselAvail === 'function') setCarouselAvail();
-        }
-      };
       imgBox.appendChild(img);
     } else {
+      // No image: use stored aspect for placeholder sizing
+      const fallbackAspect = parseAspect(p.aspect);
+      imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
       imgBox.style.background = 'var(--paper-deep)';
     }
     card.appendChild(imgBox);
