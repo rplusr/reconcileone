@@ -111,25 +111,27 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   align-items:flex-start;
   cursor:pointer
 }
-/* Image container — height fixed by JS, width driven by image natural ratio */
+/* Image container — height fixed by JS, width set from natural ratio */
 .carousel-card .c-img-box{
   position:relative;
-  flex-shrink:0
+  flex-shrink:0;
+  overflow:hidden
 }
 .carousel-card .c-img-box::after{
   content:'';
   position:absolute;
   inset:0;
   pointer-events:none;
-  background:radial-gradient(circle 180px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,0.18) 0%, transparent 70%);
+  background:radial-gradient(ellipse 60% 60% at 50% 50%, transparent 40%, rgba(0,0,0,0.42) 100%);
   opacity:0;
-  transition:opacity 0.3s ease
+  transition:opacity 0.4s ease
 }
 .carousel-card:hover .c-img-box::after{opacity:1}
 .carousel-card .c-img{
   display:block;
+  width:100%;
   height:100%;
-  width:auto;
+  object-fit:cover;
   will-change:transform;
   transition:transform 0.7s cubic-bezier(0.22,1,0.36,1)
 }
@@ -1327,6 +1329,17 @@ function renderGrid(projects) {
       img.alt = p.title || '';
       img.decoding = 'async';
       img.draggable = false;
+      // Set initial width from stored aspect, correct from natural dims on load
+      const initAspect = parseAspect(p.aspect);
+      imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
+      img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        const ratio = img.naturalWidth / img.naturalHeight;
+        const w = `calc(${baseH} * ${hMult.toFixed(4)} * ${ratio.toFixed(4)})`;
+        imgBox.style.width = w;
+        // Update all clones for this project
+        grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-img-box`).forEach(b => { b.style.width = w; });
+      };
       imgBox.appendChild(img);
     } else {
       // No image: use stored aspect for placeholder sizing
@@ -1362,18 +1375,6 @@ function renderGrid(projects) {
       const _titleEl = document.getElementById('carousel-active-title');
       card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); });
       card.addEventListener('mouseleave', () => _titleEl.classList.remove('visible'));
-      imgBox.addEventListener('mouseenter', () => { const img = imgBox.querySelector('.c-img'); if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = 'scale(1.05)'; } });
-      imgBox.addEventListener('mouseleave', () => { const img = imgBox.querySelector('.c-img'); if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = ''; } });
-      let _spotRaf = null;
-      imgBox.addEventListener('mousemove', e => {
-        if (_spotRaf) return;
-        _spotRaf = requestAnimationFrame(() => {
-          _spotRaf = null;
-          const r = imgBox.getBoundingClientRect();
-          imgBox.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-          imgBox.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
-        });
-      });
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', p.title || 'View project');
@@ -1435,18 +1436,6 @@ function renderGrid(projects) {
         cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); });
         cl.addEventListener('mouseleave', () => activeTitleEl.classList.remove('visible'));
         cl.addEventListener('click', () => navigate('#/project/' + proj.id));
-      }
-      // Simple scale on clone's imgBox
-      const clImgBox = cl.querySelector('.c-img-box');
-      if (clImgBox) {
-        clImgBox.addEventListener('mouseenter', () => {
-          const img = clImgBox.querySelector('.c-img');
-          if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = 'scale(1.05)'; }
-        });
-        clImgBox.addEventListener('mouseleave', () => {
-          const img = clImgBox.querySelector('.c-img');
-          if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = ''; }
-        });
       }
       return cl;
     });
