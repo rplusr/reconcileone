@@ -1,0 +1,2653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dan Elliott</title>
+<meta name="description" content="Dan Elliott — designer and creative director based in Perth, Australia.">
+<meta property="og:title" content="Dan Elliott">
+<meta property="og:description" content="Designer and creative director based in Perth, Australia.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<script defer src="https://cdn.jsdelivr.net/npm/animejs@3.2.2/lib/anime.min.js"></script>
+<style>
+@font-face{font-family:"Sunday Masthead";src:url("fonts/SundayMasthead-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url("fonts/BDOGrotesk-Light.woff2") format("woff2");font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url("fonts/BDOGrotesk-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url("fonts/BDOGrotesk-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url("fonts/BDOGrotesk-DemiBold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url("fonts/BDOGrotesk-Bold.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+
+:root{
+  --font:"BDO Grotesk",system-ui,sans-serif;
+  --paper:#F5F4F1;--paper-deep:#ECEAE4;--ink:#1A1A18;--ink-muted:#767570;--line:#D8D5CD;
+  --fs-display:clamp(2rem,5vw,4rem);
+  --fs-title:clamp(1.3rem,2vw,1.9rem);
+  --fs-heading:clamp(1rem,1.3vw,1.2rem);
+  --fs-body:0.8125rem;--fs-small:0.75rem;--fs-label:0.516rem;
+  --space-3:16px;--space-4:24px;--space-5:40px;--space-6:64px;--space-7:120px;--space-8:180px;
+  --page-margin:20px;
+  --grid-col:3;--grid-gap:12px;--row-gap:40px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+img{max-width:100%;display:block}
+#page-wrap,#page-wrap>div{overflow:hidden}
+body{background:var(--paper);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;color:var(--ink);font-family:var(--font);font-weight:400;font-size:var(--fs-body);line-height:1.45;-webkit-tap-highlight-color:transparent;touch-action:pan-y;overscroll-behavior-x:none}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
+/* Animations */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes carouselSlideUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+@keyframes t-digit-pop-in{0%{transform:translateY(6px);opacity:0;filter:blur(2px)}100%{transform:translateY(0);opacity:1;filter:blur(0)}}
+
+/* Edit mode indicators */
+[data-edit="true"] [data-ed]:hover{outline:1px dashed #c9c6bd;outline-offset:3px;cursor:text}
+[data-ed]:focus{outline:1px solid var(--ink);outline-offset:3px}
+
+
+/* Clock */
+.t-digit-group{display:inline-flex;align-items:baseline}
+.t-digit{display:inline-block;will-change:transform,opacity,filter}
+.t-digit-group.is-animating .t-digit{animation:t-digit-pop-in 400ms cubic-bezier(0.34,1.45,0.64,1) both}
+.t-digit-group.is-animating .t-digit[data-stagger="1"]{animation-delay:50ms}
+.t-digit-group.is-animating .t-digit[data-stagger="2"]{animation-delay:100ms}
+
+.pw-shake{animation:shake 0.4s ease}
+
+/* Project grid — 3 column masonry-style (used in edit mode / list fallback) */
+#home-carousel-wrap{margin-top:var(--space-3)}
+#home-grid{
+  display:grid;
+  grid-template-columns:repeat(var(--grid-col),1fr);
+  grid-auto-rows:8px;
+  gap:0 var(--grid-gap);
+  padding-bottom:clamp(40px,6vw,80px)
+}
+
+/* ── Carousel mode ─────────────────────────────────────────────────────────── */
+#home-carousel-wrap.carousel-mode{
+  margin-left:calc(-1 * var(--page-margin));
+  margin-right:calc(-1 * var(--page-margin));
+  overflow:hidden;
+  cursor:ew-resize;
+  touch-action:pan-y;
+  /* fill exactly the space between work-bar and sticky-bottom, then centre strip */
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  /* JS sets exact height via --carousel-avail; fallback for initial paint */
+  height:var(--carousel-avail, calc(100dvh - 160px))
+}
+#home-grid.carousel-mode{
+  display:flex;
+  flex-direction:row;
+  align-items:flex-end;
+  gap:12px;
+  /* base strip height — cards are sized relative to this */
+  height:clamp(260px,44vh,540px);
+  overflow-x:scroll;
+  overflow-y:visible;
+  scrollbar-width:none;
+  -ms-overflow-style:none;
+  grid-template-columns:unset;
+  grid-auto-rows:unset;
+  padding-bottom:0;
+  padding-left:var(--page-margin);
+  padding-right:var(--page-margin);
+  scroll-behavior:smooth
+}
+#home-grid.carousel-mode::-webkit-scrollbar{display:none}
+
+/* Each card = image box + descriptor below */
+.carousel-card{
+  position:relative;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  cursor:pointer
+}
+/* Image container — clips the image and handles the height */
+.carousel-card .c-img-box{
+  position:relative;
+  flex-shrink:0;
+  overflow:hidden
+}
+.carousel-card .c-img-box::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle 180px at var(--sx,50%) var(--sy,50%), rgba(255,255,255,0.18) 0%, transparent 70%);
+  opacity:0;
+  transition:opacity 0.3s ease
+}
+.carousel-card:hover .c-img-box::after{opacity:1}
+.carousel-card .c-img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center top;
+  will-change:transform;
+  transition:transform 0.7s cubic-bezier(0.22,1,0.36,1)
+}
+.carousel-card:hover .c-img{transform:scale(1.03)}
+/* Descriptor below image — fades in on hover, sentence case */
+.carousel-card .c-title{
+  margin-top:8px;
+  font-size:var(--fs-small);
+  font-weight:400;
+  letter-spacing:-0.01em;
+  color:var(--ink);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity 0.28s ease,transform 0.28s ease;
+  pointer-events:none
+}
+.carousel-card:hover .c-title{
+  opacity:1;
+  transform:translateY(0)
+}
+.carousel-card .c-cat{
+  margin-top:2px;
+  font-size:var(--fs-small);
+  font-weight:400;
+  color:var(--ink-muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+  opacity:0;
+  transform:translateY(4px);
+  transition:opacity 0.28s ease 0.04s,transform 0.28s ease 0.04s;
+  pointer-events:none
+}
+.carousel-card:hover .c-cat{
+  opacity:1;
+  transform:translateY(0)
+}
+/* Edit mode: keep cat always visible and editable */
+body[data-edit="true"] .carousel-card .c-cat{opacity:1;transform:none;pointer-events:auto;border-bottom:1px dashed var(--line);outline:none;min-width:40px;cursor:text}
+body[data-edit="true"] .carousel-card .c-cat:empty::before{content:attr(data-placeholder);color:var(--line)}
+body[data-edit="true"] .carousel-card{cursor:default}
+/* Large project title — bottom-left, updates on card hover */
+#carousel-active-title{
+  position:fixed;
+  bottom:52px;
+  left:var(--page-margin);
+  right:var(--page-margin);
+  font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:700;
+  letter-spacing:-0.03em;
+  color:var(--ink);
+  line-height:1.1;
+  pointer-events:none;
+  opacity:0;
+  transform:translateY(6px);
+  transition:opacity 0.28s ease,transform 0.28s ease;
+  z-index:10;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+#carousel-active-title.visible{
+  opacity:1;
+  transform:translateY(0)
+}
+
+/* Edit-mode masonry grid cards */
+.grid-card{
+  position:relative;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding-bottom:var(--row-gap)
+}
+.card-img-box{
+  position:relative;width:100%;
+  background:var(--paper-deep);
+  overflow:hidden;
+  transition:box-shadow 0.4s ease
+}
+.card-img-box img{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;
+  transition:transform 0.65s cubic-bezier(0.22,1,0.36,1)
+}
+.grid-card:hover .card-img-box{
+  box-shadow:0 8px 32px rgba(0,0,0,0.13),0 2px 8px rgba(0,0,0,0.07)
+}
+.card-text{
+  padding:10px 0 0;
+  display:flex;flex-direction:column;gap:2px;
+  flex-shrink:0
+}
+.card-title{font-size:var(--fs-small);font-weight:400;color:var(--ink);line-height:1.3;letter-spacing:-0.03em}
+.card-desc{font-size:var(--fs-small);font-weight:400;color:var(--ink)}
+.card-cat{font-size:var(--fs-small);font-weight:400;color:var(--ink-muted)}
+.card-link-overlay{position:absolute;inset:0;z-index:4;display:block}
+
+/* Hover title label */
+#grid-hover-title{
+  font-size:var(--fs-small);
+  font-weight:400;
+  color:var(--ink);
+  letter-spacing:-0.02em;
+  opacity:0;
+  transition:opacity 0.2s ease;
+  pointer-events:none;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:60%
+}
+#grid-hover-title.visible{opacity:1}
+
+@media(max-width:768px){
+  :root{--grid-col:2;--page-margin:16px;--space-5:28px;--space-6:40px}
+  #project-split{flex-direction:column!important;align-items:stretch!important}
+  #project-sidebar{position:static!important;width:100%!important;flex:none!important;padding-right:0!important}
+  #project-blocks{grid-template-columns:1fr!important}
+  #project-blocks>div{grid-column:span 1!important}
+  #info-bio{font-size:clamp(1rem,3.8vw,1.15rem)!important;line-height:1.5!important}
+  #home-intro{font-size:clamp(0.9rem,3.2vw,1.05rem)!important;line-height:1.5!important;max-width:100%!important}
+  #info-contact-row{flex-direction:column!important}
+  #carousel-active-title{font-size:clamp(1.5rem,7vw,2.5rem)!important;bottom:56px!important}
+  /* Larger tap targets in nav */
+  .nav-btn{padding:8px 12px!important}
+  /* Work intro row tighter on mobile */
+  #work-intro-row{padding:var(--space-4) 0 var(--space-5)!important}
+  /* Carousel gap tighter on mobile */
+  #home-grid.carousel-mode{gap:8px!important}
+  /* Info overlay full-width comfortable read */
+  #info-overlay>div{padding:0 var(--page-margin)!important}
+  /* Project title sizing */
+  #proj-title{font-size:clamp(1.6rem,6vw,2.4rem)!important}
+  /* Hide hover-only elements on touch */
+  .work-item-image{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .t-digit-group .t-digit{animation:none!important}
+}
+
+/* Info overlay animation */
+.info-anim{opacity:0;transform:translateY(22px)}
+
+/* Nav hover */
+.nav-btn{padding:5px 10px;border-radius:6px;font:inherit;font-size:var(--fs-small);line-height:1;transition:background 0.16s ease,color 0.16s ease}
+.nav-btn:hover{background:rgba(26,26,24,.07)}
+[data-theme="dark"] .nav-btn:hover{background:rgba(240,239,233,.08)}
+.work-nav-btn:hover{color:var(--ink)!important}
+.site-name:hover{text-decoration:underline;text-underline-offset:.3em;text-decoration-thickness:1px}
+
+/* List row hover */
+.list-row-link:hover{opacity:.5!important}
+
+/* Social / footer hover */
+.hover-ul{transition:opacity 0.16s ease}
+.hover-ul:hover{text-decoration:underline;text-underline-offset:.3em;text-decoration-thickness:1px;opacity:0.5}
+
+/* Scroll progress indicator — project pages only */
+#scroll-progress{
+  position:fixed;
+  top:0;left:0;
+  width:0%;
+  height:2px;
+  background:var(--ink);
+  z-index:100;
+  opacity:0;
+  transition:opacity 0.3s ease
+}
+#scroll-progress.active{opacity:1}
+
+/* Sticky bottom bar */
+#sticky-bottom{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  padding:0 var(--page-margin);
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:var(--paper);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  z-index:40;
+  font-size:11px;
+  color:var(--ink-muted)
+}
+#sticky-bottom>*{white-space:nowrap}
+
+/* Prev/next nav hover */
+.pn-link:hover{opacity:.6}
+
+/* Block reorder strip */
+#block-reorder::-webkit-scrollbar{display:none}
+.reorder-thumb{flex-shrink:0;width:80px;cursor:grab;user-select:none;display:flex;flex-direction:column;align-items:center;gap:5px;opacity:1;transition:opacity 0.15s}
+.reorder-thumb.drag-over{outline:2px solid var(--ink);outline-offset:2px;border-radius:3px}
+.reorder-thumb.dragging{opacity:0.3}
+.reorder-thumb-img{width:80px;height:60px;object-fit:cover;border-radius:3px;background:var(--paper-deep);display:block;pointer-events:none}
+.reorder-thumb-label{font-size:10px;color:var(--ink-muted);font-variant-numeric:tabular-nums;line-height:1}
+
+/* Toolbar btn hover */
+.tool-btn:hover{background:rgba(255,255,255,.12)}
+
+/* Dark mode */
+[data-theme="dark"]{
+  --paper:#111111;--paper-deep:#1a1a1a;--ink:#f0efe9;--ink-muted:#9a9994;--line:#2e2e2b;
+}
+/* Info overlay frosted glass — adapts to light/dark */
+#info-overlay{background:rgba(245,244,241,0.82)}
+[data-theme="dark"] #info-overlay{background:rgba(17,17,17,0.82)}
+[data-theme="dark"] .nav-btn:hover{background:rgba(240,239,233,.08)}
+[data-theme="dark"] [data-edit="true"] [data-ed]:hover{outline-color:#4a4a45}
+
+/* Dark mode toggle */
+#dark-toggle{background:none;border:none;color:var(--ink-muted);padding:5px 10px;border-radius:6px;font-size:var(--fs-small);line-height:1;transition:background 0.16s ease,color 0.16s ease;display:flex;align-items:center}
+#dark-toggle:hover{background:rgba(26,26,24,.07);color:var(--ink)}
+[data-theme="dark"] #dark-toggle:hover{background:rgba(240,239,233,.08);color:var(--ink)}
+
+/* ─── Sentence-style work list ─────────────────────────────────────────────── */
+.work-list{width:100%}
+.work-item{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;gap:0.3em;
+  padding:0.5em 0;
+  cursor:pointer;
+}
+.work-item-before,.work-item-after,.work-item-client{transition:opacity 0.18s ease}
+.work-item:hover .work-item-before,.work-item:hover .work-item-after,.work-item:hover .work-item-client{opacity:0.5}
+.work-item-before,.work-item-after{
+  font-size:clamp(2rem,4vw,3.5rem);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-0.03em;
+  white-space:nowrap;
+  flex-shrink:0
+}
+.work-item-after{flex-shrink:1}
+.work-item-image{
+  overflow:hidden;
+  flex-shrink:0;
+  max-width:0;
+  /* font-size matches headings; 1.1em = line-height (ascenders + cap + descenders) */
+  font-size:clamp(2rem,4vw,3.5rem);
+  height:1.1em;
+  border-radius:3px;
+  image-rendering:pixelated;
+  transition:max-width 0.22s cubic-bezier(0.4,0,0.2,1)
+}
+.work-item-image.in-viewport{image-rendering:auto}
+
+/* Project page block images — fade + unblur on load */
+.proj-block-img{
+  opacity:0;
+  filter:blur(12px);
+  transform:scale(1.02);
+  transition:
+    opacity 0.7s cubic-bezier(0.19,1,0.22,1),
+    filter  0.7s cubic-bezier(0.19,1,0.22,1),
+    transform 0.7s cubic-bezier(0.19,1,0.22,1)
+}
+.proj-block-img.loaded{
+  opacity:1;
+  filter:blur(0);
+  transform:scale(1)
+}
+.work-item-image img{
+  display:block;
+  width:auto;height:100%;
+  aspect-ratio:3/2;
+  object-fit:cover;
+  border-radius:3px;
+  opacity:0;
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:
+    transform 0.22s cubic-bezier(0.4,0,0.2,1) 0.25s,
+    opacity   0.45s cubic-bezier(0.19,1,0.22,1)
+}
+.work-item-image.in-viewport img{opacity:1}
+.work-item:hover .work-item-image{max-width:1.65em}
+.work-item:hover .work-item-image img{transform:scaleX(1)}
+.work-item:hover .work-item-image.in-viewport img{opacity:1;transform:scaleX(1)}
+/* Project name — sits to the right of the centred sentence */
+.work-item-client{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  font-size:var(--fs-small);font-weight:400;
+  letter-spacing:-0.02em;
+  color:var(--ink-muted);white-space:nowrap;pointer-events:none
+}
+@media(max-width:1179px){
+  .work-item-image{display:none}
+  .work-item{gap:0.2em}
+}
+@media(max-width:843px){
+  .work-item{flex-direction:column;align-items:center;gap:0.1em;padding-right:0;text-align:center}
+  .work-item-before,.work-item-after{white-space:normal;text-align:center}
+  .work-item-before::after{content:' ' attr(data-after)}
+  .work-item-after{display:none}
+  .work-item-client{position:static;transform:none;margin-top:0.2em;font-size:var(--fs-label)}
+}
+</style>
+</head>
+<body>
+
+<!-- Password Gate -->
+<div id="pw-gate" style="display:none;position:fixed;inset:0;background:var(--paper);z-index:200;flex-direction:column;justify-content:center;align-items:center;gap:40px;animation:fadeIn .2s ease both">
+  <div id="pw-name" style="font-size:clamp(2rem,5vw,4rem);font-weight:700;letter-spacing:-0.045em;color:var(--ink);line-height:1"></div>
+  <form id="pw-form" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <!-- honeypot: bots fill this, humans don't see it -->
+    <input id="pw-honey" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none">
+    <input id="pw-input" type="password" placeholder="Password" autofocus style="border:none;border-bottom:1.5px solid var(--ink);padding:10px 0;font:inherit;font-size:1rem;width:220px;outline:none;text-align:center;background:transparent;color:var(--ink);letter-spacing:0.04em"/>
+    <span id="pw-error" style="display:none;font-size:var(--fs-small);color:#B00;letter-spacing:-0.01em">Incorrect password</span>
+    <span id="pw-rate-msg" style="display:none;font-size:var(--fs-small);color:#B00;letter-spacing:-0.01em"></span>
+  </form>
+</div>
+
+<!-- Sticky Header (outside transition wrapper so it stays visible during navigations) -->
+<div style="padding:0 var(--page-margin)">
+  <header id="site-header" style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);padding:12px 0;position:sticky;top:0;background:var(--paper);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:40">
+    <a href="#/" id="header-name" class="site-name" style="font-size:var(--fs-small);font-weight:500;color:var(--ink);text-decoration:none;letter-spacing:-0.03em;line-height:1;display:flex;align-items:center;gap:7px">
+      <span id="nav-dot" style="display:none;width:7px;height:7px;border-radius:50%;background:var(--ink);flex:none;align-self:center;margin-bottom:1px"></span>
+    </a>
+    <nav style="display:flex;gap:4px;align-items:center;font-size:var(--fs-small)">
+      <button class="nav-btn work-nav-btn" onclick="if(currentView!=='home'){navigate('#/','back')}" style="background:none;border:none;color:var(--ink-muted);padding:5px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:var(--fs-small);line-height:1;transition:background 0.16s ease,color 0.16s ease">Work</button>
+      <button id="info-btn" onclick="toggleInfo()" class="nav-btn" style="background:none;border:none;color:var(--ink);padding:5px 10px;border-radius:6px;font:inherit;font-size:var(--fs-small);line-height:1;transition:background 0.16s ease">
+        <span id="info-label">Info</span>
+      </button>
+      <button id="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+        <span id="dark-icon" style="display:flex;align-items:center"></span>
+      </button>
+    </nav>
+  </header>
+</div>
+
+<!-- Page transition curtain -->
+<div id="page-loader" style="position:fixed;inset:0;background:var(--paper);z-index:300;display:flex;align-items:center;justify-content:center">
+  <svg viewBox="0 0 300 44" style="width:min(280px,68vw);overflow:visible" aria-label="Dan Elliott">
+    <defs>
+      <clipPath id="loader-clip">
+        <rect id="loader-clip-rect" x="-4" y="-14" width="0" height="72"/>
+      </clipPath>
+    </defs>
+    <!-- Ghost underlay -->
+    <text id="loader-ghost" x="150" y="32" text-anchor="middle" font-family="'BDO Grotesk',system-ui,sans-serif" font-size="26" font-weight="500" letter-spacing="-0.05em" fill="#1A1A18" opacity="0.09">Dan Elliott</text>
+    <!-- Revealed fill -->
+    <text id="loader-fill" x="150" y="32" text-anchor="middle" font-family="'BDO Grotesk',system-ui,sans-serif" font-size="26" font-weight="500" letter-spacing="-0.05em" fill="#1A1A18" clip-path="url(#loader-clip)">Dan Elliott</text>
+  </svg>
+</div>
+<div id="page-curtain" style="position:fixed;inset:0;background:var(--paper);z-index:35;pointer-events:none;transform:scaleY(0);transform-origin:top;will-change:transform"></div>
+
+<!-- Page transition wrapper -->
+<div id="page-wrap" style="opacity:1;transform:translateY(0);will-change:opacity,transform">
+  <div style="padding:0 var(--page-margin)">
+
+    <!-- HOME VIEW -->
+    <main id="home-view">
+      <section id="work" style="padding-top:var(--space-4);padding-bottom:50px">
+        <div id="work-intro-row" style="padding:var(--space-5) 0 var(--space-6);display:flex;align-items:center">
+          <div id="home-intro" data-ed style="font-size:var(--fs-heading);font-weight:400;line-height:1.45;letter-spacing:-0.02em;text-wrap:pretty;max-width:min(calc(66.667% - 4px),44ch);color:var(--ink-muted)"></div>
+        </div>
+        <div id="work-bar" style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:var(--space-3)">
+          <div style="display:flex;align-items:baseline;gap:12px">
+            <h2 id="grid-label" style="font-size:var(--fs-heading);font-weight:400;letter-spacing:-0.02em;color:var(--ink)">Selected Work</h2>
+            <span id="grid-hover-title"></span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:10px;font-size:var(--fs-small);color:var(--ink-muted)">
+            <button id="grid-btn" onclick="setView('grid')" style="background:transparent;border:none;font:inherit;font-size:var(--fs-small);cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:0.3em"><span style="text-decoration:none">🎠</span><span id="grid-btn-label">Carousel</span></button>
+            <button id="list-btn" onclick="setView('list')" style="background:transparent;border:none;font:inherit;font-size:var(--fs-small);cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:0.3em"><span style="text-decoration:none">📇</span><span id="list-btn-label">Index</span></button>
+          </div>
+        </div>
+
+        <!-- Grid view -->
+        <div id="home-carousel-wrap">
+          <div id="home-grid"></div>
+        </div>
+
+        <!-- List view -->
+        <div id="home-list" style="display:none"></div>
+      </section>
+    </main>
+
+    <!-- PROJECT VIEW -->
+    <main id="project-view" style="display:none;padding-top:var(--space-5);padding-bottom:60px">
+      <a href="#/" id="back-link" onclick="navigate('#/','back');return false" style="font-size:var(--fs-small);color:var(--ink-muted);text-decoration:none;display:inline-block;padding-bottom:12px;animation:fadeUp 0.35s ease both">← Index</a>
+      <div id="project-split" style="display:flex;gap:12px;margin-top:12px;align-items:flex-start">
+        <div id="project-sidebar" style="flex:0 0 26%;min-width:0;display:flex;flex-direction:column;gap:16px;position:sticky;top:60px;align-self:flex-start;padding-right:12px;animation:fadeUp 0.45s ease 60ms both">
+          <h1 id="proj-title" data-ed style="font-size:clamp(1.125rem,2.7vw,2.25rem);font-weight:700;letter-spacing:-0.04em;line-height:1.0;color:var(--ink)"></h1>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Client</span>
+              <span id="proj-client" data-ed style="font-size:var(--fs-small)"></span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Discipline</span>
+              <span id="proj-role" data-ed style="font-size:var(--fs-small)"></span>
+            </div>
+            <div id="proj-caption" data-ed style="font-size:var(--fs-small);line-height:1.5;color:var(--ink-muted);margin-top:4px;font-weight:400"></div>
+            <div id="proj-credits" data-ed style="font-size:var(--fs-label);line-height:1.5;color:var(--ink-muted);margin-top:8px;font-weight:400"></div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div id="block-reorder" style="display:none;overflow-x:auto;scrollbar-width:none;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--line)"></div>
+          <div id="project-blocks" style="display:grid;grid-template-columns:repeat(12,1fr);gap:12px;align-items:start"></div>
+          <div id="add-blocks" style="display:none;gap:10px;margin-top:var(--space-5)">
+            <button onclick="addBlock('image')" class="ghost-btn">Image block</button>
+            <button onclick="addBlock('video')" class="ghost-btn">Video block</button>
+            <button onclick="addBlock('text')" class="ghost-btn">Text block</button>
+          </div>
+        </div>
+      </div>
+      <div id="proj-nav" style="display:flex;justify-content:space-between;gap:var(--space-5);margin-top:144px">
+        <a id="proj-prev" href="#" onclick="handleProjNav(event,'prev')" class="pn-link" style="display:flex;flex-direction:column;gap:6px;color:var(--ink);text-decoration:none;max-width:45%;transition:opacity 0.2s">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">← Previous</span>
+          <span id="proj-prev-title" style="font-size:var(--fs-heading);font-weight:600;letter-spacing:-0.03em"></span>
+        </a>
+        <a id="proj-next" href="#" onclick="handleProjNav(event,'next')" class="pn-link" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:right;color:var(--ink);text-decoration:none;max-width:45%;transition:opacity 0.2s">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Next →</span>
+          <span id="proj-next-title" style="font-size:var(--fs-heading);font-weight:600;letter-spacing:-0.03em"></span>
+        </a>
+      </div>
+    </main>
+
+    <!-- Footer removed; content moved to #sticky-bottom -->
+
+  </div>
+</div>
+<!-- end page-wrap -->
+
+<!-- Info Overlay -->
+<div id="info-overlay" style="display:none;position:fixed;inset:0;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);z-index:70;overflow:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch">
+  <div style="padding:0 var(--page-margin)">
+    <div id="info-header-row" style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-4);padding:12px 0">
+      <span id="info-name" style="font-size:var(--fs-small);font-weight:500;letter-spacing:-0.03em;line-height:1"></span>
+      <button onclick="toggleInfo()" class="nav-btn" style="background:none;border:none;cursor:pointer;color:var(--ink);padding:5px 10px;border-radius:6px;font:inherit;font-size:var(--fs-small);transition:background 0.16s ease" onmouseover="this.style.background='rgba(26,26,24,.07)'" onmouseout="this.style.background='none'" title="Close">Close</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:var(--space-4);padding:var(--space-4) 0">
+      <div id="info-bio" data-ed class="info-anim" style="font-size:var(--fs-title);font-weight:400;line-height:1.35;letter-spacing:-0.03em;text-wrap:pretty;width:100%;max-width:44ch"></div>
+
+      <!-- PNG sequence / scrollable image strip -->
+      <div id="info-sequence" class="info-anim" style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;cursor:grab;user-select:none;padding-bottom:4px"></div>
+      <div id="info-sequence-add" class="info-anim" style="display:none">
+        <button onclick="triggerUpload('infoSequence')" style="background:none;border:1px dashed var(--line);color:var(--ink-muted);font:inherit;font-size:var(--fs-small);cursor:pointer;padding:8px 16px;border-radius:4px">+ Add image</button>
+      </div>
+
+      <!-- Clients + Capabilities columns -->
+      <div id="info-cols" class="info-anim" style="display:flex;flex-wrap:wrap;gap:var(--space-5)">
+        <div style="display:flex;flex-direction:column;gap:var(--space-3);min-width:160px">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Clients</span>
+          <div id="info-clients" style="display:flex;flex-direction:column;gap:2px;font-size:var(--fs-small)"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Capabilities</span>
+          <div id="info-capabilities" style="display:flex;flex-direction:column;gap:2px;font-size:var(--fs-small)"></div>
+        </div>
+      </div>
+
+      <!-- Contact + Socials -->
+      <div id="info-contact-row" class="info-anim" style="display:flex;flex-wrap:wrap;gap:var(--space-5)">
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:160px">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Contact</span>
+          <a id="info-email" class="hover-ul" style="font-size:var(--fs-small);font-weight:600;color:var(--ink)"></a>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:var(--fs-label);font-weight:700;letter-spacing:0.04em;color:var(--ink-muted)">Elsewhere</span>
+          <div id="info-socials" style="display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-start"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Login view (replaces page content when at #/login) -->
+<div id="login-view" style="display:none;position:fixed;inset:0;background:var(--paper);z-index:150;flex-direction:column;justify-content:center;align-items:center;gap:40px">
+  <div id="login-heading" style="font-size:clamp(1.4rem,2.2vw,2rem);font-weight:400;letter-spacing:-0.03em;color:var(--ink)"></div>
+  <form id="login-form" style="display:flex;flex-direction:column;align-items:center;gap:14px">
+    <input id="login-input" type="password" placeholder="Password" style="border:none;border-bottom:1.5px solid var(--ink);padding:10px 0;font:inherit;font-size:1rem;width:220px;outline:none;text-align:center;background:transparent;color:var(--ink);letter-spacing:0.04em"/>
+    <div id="login-confirm-wrap" style="display:none">
+      <input id="login-confirm" type="password" placeholder="Confirm password" style="border:none;border-bottom:1.5px solid var(--ink);padding:10px 0;font:inherit;font-size:1rem;width:220px;outline:none;text-align:center;background:transparent;color:var(--ink);letter-spacing:0.04em"/>
+    </div>
+    <button type="submit" style="background:var(--ink);color:#fff;border:none;font:inherit;font-size:var(--fs-small);cursor:pointer;padding:8px 24px;border-radius:999px;letter-spacing:0.0em" id="login-submit-btn">Enter</button>
+    <span id="login-error" style="display:none;font-size:var(--fs-small);color:#B00;letter-spacing:-0.01em"></span>
+  </form>
+  <a href="#/" onclick="navigate('#/');return false" style="font-size:var(--fs-small);color:var(--ink-muted);text-decoration:none">← Back</a>
+</div>
+
+<!-- Edit Toolbar — only shown when edit-authenticated -->
+<div id="toolbar" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:90;gap:6px;align-items:center;background:var(--ink);color:#fff;border-radius:999px;padding:7px 8px;box-shadow:0 6px 24px rgba(0,0,0,.18)">
+  <button id="edit-btn" onclick="toggleEdit()" style="background:transparent;color:#fff;border:none;font:inherit;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:999px;font-weight:600;transition:background 0.15s">Edit</button>
+  <span id="save-status" style="display:none;font-size:11px;padding:0 8px;opacity:0;transition:opacity 0.3s"></span>
+  <div id="toolbar-extras" style="display:none;gap:6px;align-items:center">
+    <span style="width:1px;height:18px;background:rgba(255,255,255,.25);display:block"></span>
+    <button onclick="addProject()" class="tool-btn">Project</button>
+    <button onclick="changeEditPassword()" class="tool-btn">Password</button>
+    <button onclick="resetContent()" class="tool-btn">Reset</button>
+    <span style="width:1px;height:18px;background:rgba(255,255,255,.25);display:block"></span>
+    <button onclick="logoutEdit()" class="tool-btn" style="opacity:.6">Log out</button>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" accept="image/*,.gif,video/mp4,video/webm,video/quicktime" style="display:none" onchange="onFile(event)"/>
+
+<style>
+.tool-btn{background:transparent;color:#fff;border:none;font:inherit;font-size:12px;cursor:pointer;padding:6px 12px;border-radius:999px;transition:background 0.15s}
+.tool-btn:hover{background:rgba(255,255,255,.12)}
+.ghost-btn{background:transparent;color:var(--ink);border:1px solid var(--line);font:inherit;font-size:var(--fs-small);cursor:pointer;padding:6px 14px;border-radius:2px;align-self:flex-start}
+.ghost-btn:hover{border-color:var(--ink)}
+.chip-btn{background:var(--ink);color:#fff;border:none;font:inherit;font-size:11px;cursor:pointer;padding:4px 8px;border-radius:3px;line-height:1}
+</style>
+
+<script>
+// ─── CMS State ───────────────────────────────────────────────────────────────
+const KEY = 'danelliott_cms_v2';
+const EDIT_AUTH_KEY = 'dae_edit_auth';
+const DB = 'https://danielsans-2b350-default-rtdb.asia-southeast1.firebasedatabase.app/content.json';
+const SUPABASE_URL = 'https://uusuhjlvyjixaemmglbs.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1c3Voamx2eWppeGFlbW1nbGJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTY0NTgsImV4cCI6MjA5Nzg3MjQ1OH0.GGI_x_W6Uk76GabycdXEuZvjh0U7imZsnM-jDxSirx0';
+const SUPABASE_BUCKET = 'portfolio-images';
+let content, editMode = false, viewMode = 'grid', infoOpen = false;
+let currentView = 'home', currentProjectId = null;
+let transitioning = false, animateCards = false;
+let uploadPath = null;
+let clockTimer = null;
+
+function isEditAuthed() {
+  const stored = sessionStorage.getItem(EDIT_AUTH_KEY);
+  return stored && content.editPassword && stored === content.editPassword;
+}
+
+function defaultContent() {
+  const cap = 'A complete identity built to scale — strategy, naming, and a flexible visual system.';
+  const blocks = () => ([
+    {id:'b1',type:'image',src:null,span:12,aspect:'16/9'},
+    {id:'b2',type:'text',text:'The work began with positioning and a naming review, then moved into a modular identity system: a custom wordmark, a tightly drawn type hierarchy and a grid that holds across print and screen.',span:8},
+    {id:'b3',type:'image',src:null,span:6,aspect:'4/5'},
+    {id:'b4',type:'image',src:null,span:6,aspect:'4/5'}
+  ]);
+  const mk = (id,title,aspect,cat) => ({id,title,image:null,aspect,client:title,role:cat,caption:cap,descriptor:'',hidden:false,blocks:blocks()});
+  return {
+    name:'Dan Elliott',
+    bio:'Dan Elliott is a brand designer and creative lead with fifteen years shaping identities for organisations at every scale, from global technology and sport to culture, property and luxury. He works as both an independent studio and an embedded partner, building brands that organisations can grow into, not out of.',
+    contactEmail:'contact@danielsans.net',
+    socials:[{label:'Instagram',url:'#'},{label:'LinkedIn',url:'#'}],
+    clients:['Nike','Aesop','Lendlease','Cricket Australia','ANZ','Broadsheet'],
+    capabilities:['Brand Identity','Creative Direction','Type Design','Art Direction','Campaign','Packaging'],
+    password:'',
+    homeIntro:'Brand designer and creative lead. Fifteen years shaping identities for organisations at every scale.',
+    projects:[
+      mk('meridian','Meridian','4/5','Brand Identity'),
+      mk('fotosprint','Fotosprint','3/4','Editorial'),
+      mk('union','Union','2/3','Brand Identity'),
+      mk('carbon','Carbon','4/5','Packaging'),
+      mk('atrium','Atrium','3/4','Wayfinding'),
+      mk('halcyon','Halcyon','4/5','Type Design')
+    ]
+  };
+}
+
+// Strip base64 image data before writing to Firebase — keeps payload small.
+// Images are stored in localStorage only; text/structure sync via Firebase.
+function stripImages(data) {
+  const d = JSON.parse(JSON.stringify(data));
+  if (d.projects) d.projects.forEach(p => {
+    if (p.image && p.image.startsWith('data:')) p.image = null;
+    (p.blocks || []).forEach(b => { if (b.src && b.src.startsWith('data:')) b.src = null; });
+  });
+  return d;
+}
+
+// Restore local image data into a structure fetched from Firebase.
+function mergeLocalImages(firebaseData, localData) {
+  if (!localData || !localData.projects || !firebaseData.projects) return firebaseData;
+  firebaseData.projects.forEach(fp => {
+    const lp = localData.projects.find(x => x.id === fp.id);
+    if (!lp) return;
+    // Restore any saved image URL (Supabase or data:) if Firebase has none
+    if (!fp.image && lp.image) fp.image = lp.image;
+    (fp.blocks || []).forEach(fb => {
+      const lb = lp.blocks && lp.blocks.find(x => x.id === fb.id);
+      if (lb && !fb.src && lb.src) fb.src = lb.src;
+    });
+  });
+  return firebaseData;
+}
+
+async function loadContent() {
+  let firebaseData = null;
+  let localData = null;
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) localData = JSON.parse(raw);
+  } catch(e) {}
+
+  try {
+    const res = await fetch(DB + '?t=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.projects) firebaseData = data;
+    }
+  } catch(e) { console.warn('Firebase unreachable, using local cache'); }
+
+  if (firebaseData) {
+    mergeLocalImages(firebaseData, localData);
+    normalizeAspects(firebaseData);
+    // Save merged (with images) back to localStorage for next load
+    const serialized = JSON.stringify(firebaseData);
+    try { localStorage.setItem(KEY, serialized); } catch(e) {
+      try { localStorage.setItem(KEY, JSON.stringify(stripImages(firebaseData))); } catch(e2) {}
+    }
+    return firebaseData;
+  }
+
+  if (localData) {
+    normalizeAspects(localData);
+    fetch(DB, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(stripImages(localData)) })
+      .catch(() => {});
+    return localData;
+  }
+
+  return defaultContent();
+}
+
+// Normalize any raw-pixel aspect ratios (e.g. "3024/4032") to reduced form ("3/4")
+function normalizeAspects(data) {
+  if (!data || !data.projects) return data;
+  data.projects.forEach(p => {
+    if (p.aspect) p.aspect = normalizeAspect(p.aspect);
+    (p.blocks || []).forEach(b => { if (b.aspect) b.aspect = normalizeAspect(b.aspect); });
+  });
+  return data;
+}
+function normalizeAspect(str) {
+  const parts = str.split('/');
+  if (parts.length !== 2) return str;
+  const w = parseInt(parts[0]), h = parseInt(parts[1]);
+  if (!w || !h) return str;
+  return aspectRatio(w, h);
+}
+
+function showSaveStatus(msg, color) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = color;
+  el.style.display = 'inline';
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 2000);
+}
+
+function saveContent() {
+  const serialized = JSON.stringify(content);
+  try {
+    localStorage.setItem(KEY, serialized);
+  } catch(e) {
+    // localStorage quota exceeded — strip images and save metadata only
+    try {
+      const stripped = stripImages(content);
+      localStorage.setItem(KEY, JSON.stringify(stripped));
+    } catch(e2) { console.warn('localStorage full, skipping local save'); }
+  }
+  showSaveStatus('Saving…', 'rgba(255,255,255,0.6)');
+  fetch(DB, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(stripImages(content))
+  })
+  .then(res => {
+    if (res.ok) {
+      showSaveStatus('Saved ✓', '#6ee7b7');
+    } else {
+      res.text().then(t => console.error('Firebase error:', res.status, t));
+      showSaveStatus('Save failed ✗', '#fca5a5');
+    }
+  })
+  .catch(e => {
+    console.error('Firebase save failed:', e);
+    showSaveStatus('Save failed ✗', '#fca5a5');
+  });
+}
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+function isAuthenticated() {
+  if (!content.password) return true;
+  return sessionStorage.getItem('dae_auth') === content.password;
+}
+
+function checkAuth() {
+  if (!isAuthenticated()) {
+    document.getElementById('pw-gate').style.display = 'flex';
+    document.getElementById('pw-name').textContent = content.name;
+    document.getElementById('pw-input').focus();
+    return false;
+  }
+  return true;
+}
+
+// ─── Rate limiting for password gate ─────────────────────────────────────────
+const _RL_KEY = 'dae_rl';
+const _RL_MAX = 5; // attempts before lockout
+const _PW_SHOWN_AT = Date.now();
+
+function _rlGet() { try { return JSON.parse(localStorage.getItem(_RL_KEY)||'{}'); } catch { return {}; } }
+function _rlSet(d) { try { localStorage.setItem(_RL_KEY, JSON.stringify(d)); } catch {} }
+function _rlLocked() { const d=_rlGet(); return d.until && Date.now()<d.until; }
+function _rlSecs() { const d=_rlGet(); return Math.ceil(((d.until||0)-Date.now())/1000); }
+function _rlFail() {
+  const d=_rlGet(); const attempts=(d.attempts||0)+1;
+  if (attempts>=_RL_MAX) {
+    const lockouts=d.lockouts||0;
+    const dur=Math.min(30000*Math.pow(2,lockouts), 10*60*1000); // 30s→60s→2m→4m→10m cap
+    _rlSet({attempts,lockouts:lockouts+1,until:Date.now()+dur});
+  } else { _rlSet({...d,attempts}); }
+}
+function _rlOk() { _rlSet({}); }
+
+function _showRateMsg(msg) {
+  const el=document.getElementById('pw-rate-msg');
+  if (el) { el.textContent=msg; el.style.display=msg?'block':'none'; }
+  document.getElementById('pw-error').style.display='none';
+}
+
+document.getElementById('pw-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  // Honeypot check
+  if (document.getElementById('pw-honey').value) return;
+  // Minimum time check (< 800ms = suspicious)
+  if (Date.now()-_PW_SHOWN_AT < 800) return;
+  // Rate limit check
+  if (_rlLocked()) { _showRateMsg(`Too many attempts. Try again in ${_rlSecs()}s.`); return; }
+
+  const val = document.getElementById('pw-input').value;
+  if (val === content.password) {
+    _rlOk();
+    sessionStorage.setItem('dae_auth', val);
+    document.getElementById('pw-gate').style.display = 'none';
+    init();
+  } else {
+    _rlFail();
+    const form = document.getElementById('pw-form');
+    form.classList.remove('pw-shake'); void form.offsetWidth; form.classList.add('pw-shake');
+    setTimeout(() => form.classList.remove('pw-shake'), 400);
+    if (_rlLocked()) {
+      _showRateMsg(`Too many attempts. Try again in ${_rlSecs()}s.`);
+    } else {
+      document.getElementById('pw-error').style.display = 'block';
+    }
+    document.getElementById('pw-input').value = '';
+    document.getElementById('pw-input').focus();
+  }
+});
+
+// ─── Routing ──────────────────────────────────────────────────────────────────
+function parseHash() {
+  const h = location.hash || '';
+  if (h === '#/login') return {view:'login', id:null};
+  const m = h.match(/#\/project\/([^/]+)/);
+  return m ? {view:'project', id:decodeURIComponent(m[1])} : {view:'home', id:null};
+}
+
+function setNavDot(visible) {
+  const dot = document.getElementById('nav-dot');
+  if (!dot) return;
+  clearInterval(dot._blinkInterval);
+  clearTimeout(dot._hide);
+  if (visible) {
+    dot.style.display = 'block';
+    dot.style.opacity = '1';
+    let on = true;
+    dot._blinkInterval = setInterval(() => { on = !on; dot.style.opacity = on ? '1' : '0'; }, 500);
+    dot._hide = setTimeout(() => {
+      clearInterval(dot._blinkInterval);
+      dot.style.display = 'none';
+      dot.style.opacity = '1';
+    }, 3000);
+  } else {
+    dot.style.display = 'none';
+    dot.style.opacity = '1';
+  }
+}
+
+let _navDir = 'forward'; // direction used by showPage()
+
+function navigate(href, dir) {
+  if (transitioning) return;
+  transitioning = true;
+  setNavDot(true);
+  const skipFade = currentView === 'login';
+  if (skipFade) {
+    const current = location.hash || '#/';
+    if (current !== href) location.hash = href;
+    return;
+  }
+
+  // Determine slide direction: going home = back, going into a project = forward
+  _navDir = dir || ((href === '#/' || href === '#/work') ? 'back' : 'forward');
+
+  const wrap = document.getElementById('page-wrap');
+  const mobile = window.innerWidth <= 768;
+  const outX = mobile ? 0 : (_navDir === 'forward' ? -44 : 44);
+  const outY = mobile ? (_navDir === 'forward' ? -28 : 28) : 0;
+  anime({
+    targets: wrap,
+    opacity: [1, 0],
+    translateX: [0, outX],
+    translateY: [0, outY],
+    duration: mobile ? 260 : 220,
+    easing: 'easeInQuart',
+    complete: () => {
+      const current = location.hash || '#/';
+      if (current === href) {
+        window.scrollTo(0, 0);
+        showPage();
+      } else {
+        location.hash = href;
+      }
+    }
+  });
+}
+window.addEventListener('hashchange', () => {
+  const r = parseHash();
+  currentView = r.view;
+  currentProjectId = r.id;
+  infoOpen = false;
+  window.scrollTo(0, 0);
+  if (r.view !== 'login' && !isEditAuthed()) editMode = false;
+  animateCards = true;
+  render();
+  animateCards = false;
+  setTimeout(showPage, 20);
+});
+
+function showPage() {
+  const wrap = document.getElementById('page-wrap');
+  const mobile = window.innerWidth <= 768;
+  const inX = mobile ? 0 : (_navDir === 'forward' ? 44 : -44);
+  const inY = mobile ? (_navDir === 'forward' ? 40 : -20) : 0;
+  anime.set(wrap, { opacity: 0, translateX: inX, translateY: inY });
+  anime({
+    targets: wrap,
+    opacity: [0, 1],
+    translateX: [inX, 0],
+    translateY: [inY, 0],
+    duration: mobile ? 520 : 460,
+    delay: 10,
+    easing: 'easeOutExpo',
+    complete: () => {
+      anime.set(wrap, { translateX: 0, translateY: 0 });
+      transitioning = false;
+    }
+  });
+}
+
+// ─── Clock ────────────────────────────────────────────────────────────────────
+function fmtTime() {
+  const d = new Date();
+  const awst = new Date(d.getTime() + d.getTimezoneOffset()*60000 + 8*3600000);
+  const p = n => String(n).padStart(2,'0');
+  return p(awst.getHours())+':'+p(awst.getMinutes())+':'+p(awst.getSeconds())+' AWST';
+}
+
+function updateClock() {
+  const el = document.getElementById('clock-el');
+  if (!el) return;
+  const chars = [...fmtTime()];
+  const groups = el.querySelectorAll('.t-digit-group');
+  if (groups.length === chars.length) {
+    groups.forEach((grp, i) => {
+      const span = grp.querySelector('.t-digit');
+      if (span && span.textContent !== chars[i]) {
+        grp.classList.remove('is-animating');
+        span.textContent = chars[i];
+        void grp.offsetWidth;
+        grp.classList.add('is-animating');
+      }
+    });
+  } else {
+    el.innerHTML = chars.map(c => `<span class="t-digit-group"><span class="t-digit">${c}</span></span>`).join('');
+  }
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+  document.body.dataset.edit = editMode;
+
+  // Hide carousel title whenever we're not on the home view
+  if (currentView !== 'home') {
+    const t = document.getElementById('carousel-active-title');
+    if (t) t.classList.remove('visible');
+  }
+
+  const isLogin = currentView === 'login';
+
+  // Login view
+  const loginEl = document.getElementById('login-view');
+  if (isLogin) {
+    loginEl.style.animation = 'none';
+    loginEl.style.display = 'flex';
+    void loginEl.offsetWidth;
+    loginEl.style.animation = 'fadeIn .2s ease both';
+    renderLoginView();
+    setTimeout(() => document.getElementById('login-input').focus(), 50);
+    return;
+  }
+  loginEl.style.display = 'none';
+
+  renderHeader();
+  renderFooter();
+  renderInfoOverlay();
+  updateEditUI();
+  updateViewBtns();
+
+  // Toolbar — only visible when edit-authenticated
+  document.getElementById('toolbar').style.display = isEditAuthed() ? 'flex' : 'none';
+
+  if (currentView === 'project') {
+    document.getElementById('home-view').style.display = 'none';
+    document.getElementById('project-view').style.display = 'block';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    // Scroll progress bar
+    const prog = document.getElementById('scroll-progress');
+    prog.classList.add('active');
+    const updateProg = () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      prog.style.width = (scrollable > 0 ? window.scrollY / scrollable * 100 : 0) + '%';
+    };
+    if (window._scrollProgHandler) window.removeEventListener('scroll', window._scrollProgHandler);
+    window._scrollProgHandler = updateProg;
+    window.addEventListener('scroll', updateProg, { passive: true });
+    updateProg();
+    // Clean up grid parallax listener when leaving home
+    const g = document.getElementById('home-grid');
+    if (g && g._scrollHandler) { window.removeEventListener('scroll', g._scrollHandler, { passive: true }); g._scrollHandler = null; }
+    renderProject();
+  } else {
+    document.getElementById('home-view').style.display = 'block';
+    document.getElementById('project-view').style.display = 'none';
+    const lockScroll = viewMode !== 'list';
+    document.documentElement.style.overflow = lockScroll ? 'hidden' : '';
+    document.body.style.overflow = lockScroll ? 'hidden' : '';
+    // Hide scroll progress
+    const prog = document.getElementById('scroll-progress');
+    prog.classList.remove('active');
+    prog.style.width = '0%';
+    if (window._scrollProgHandler) { window.removeEventListener('scroll', window._scrollProgHandler); window._scrollProgHandler = null; }
+    renderHome();
+  }
+
+  // Info overlay — display state managed by toggleInfo (with anime.js)
+  if (!infoOpen) document.getElementById('info-overlay').style.display = 'none';
+  document.getElementById('info-label').textContent = infoOpen ? 'Close' : 'Info';
+
+}
+
+function renderLoginView() {
+  const hasPassword = !!(content.editPassword);
+  const heading = document.getElementById('login-heading');
+  const confirmWrap = document.getElementById('login-confirm-wrap');
+  const submitBtn = document.getElementById('login-submit-btn');
+  const errEl = document.getElementById('login-error');
+
+  if (hasPassword) {
+    heading.textContent = 'Editor login';
+    confirmWrap.style.display = 'none';
+    submitBtn.textContent = 'Enter';
+  } else {
+    heading.textContent = 'Set an editor password';
+    confirmWrap.style.display = 'block';
+    submitBtn.textContent = 'Set password';
+  }
+  errEl.style.display = 'none';
+  document.getElementById('login-input').value = '';
+  if (document.getElementById('login-confirm')) document.getElementById('login-confirm').value = '';
+}
+
+function renderHeader() {
+  const el = document.getElementById('header-name');
+  const dot = document.getElementById('nav-dot');
+  el.textContent = content.name;
+  if (dot) el.prepend(dot);
+  el.onclick = (e) => { e.preventDefault(); if (!editMode) navigate('#/'); };
+}
+
+function renderFooter() {
+  // Sticky bottom bar
+  const copyEl = document.getElementById('footer-copy');
+  if (copyEl) copyEl.textContent = `© ${new Date().getFullYear()} ${content.name}`;
+}
+
+function renderInfoOverlay() {
+  document.getElementById('info-name').textContent = content.name;
+  const bioEl = document.getElementById('info-bio');
+  bioEl.innerHTML = content.bio || '';
+  if (editMode) makeEditableRich(bioEl, 'bio');
+  document.getElementById('info-email').textContent = content.contactEmail;
+  document.getElementById('info-email').href = 'mailto:' + content.contactEmail;
+
+  // Generic helper for editable list columns
+  function renderListCol(el, arr, key) {
+    el.innerHTML = '';
+    (arr || []).forEach((c, i) => {
+      if (editMode) {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;gap:6px';
+        const span = document.createElement('span');
+        span.contentEditable = true; span.textContent = c; span.dataset.ed = '';
+        span.style.cssText = 'flex:1;min-width:0';
+        span.addEventListener('blur', () => { content[key][i] = span.textContent.trim(); saveContent(); });
+        const del = document.createElement('button');
+        del.textContent = '×';
+        del.style.cssText = 'background:none;border:none;cursor:pointer;color:var(--ink-muted);font-size:14px;padding:0 2px;line-height:1;flex:none;font-family:inherit';
+        del.onmouseover = () => del.style.color = 'var(--ink)';
+        del.onmouseout = () => del.style.color = 'var(--ink-muted)';
+        del.onclick = () => { content[key].splice(i, 1); saveContent(); renderInfoOverlay(); };
+        row.appendChild(span); row.appendChild(del);
+        el.appendChild(row);
+      } else {
+        const span = document.createElement('span'); span.textContent = c;
+        el.appendChild(span);
+      }
+    });
+    if (editMode) {
+      const addBtn = document.createElement('button');
+      addBtn.textContent = '+ Add';
+      addBtn.style.cssText = 'font-size:11px;background:none;border:none;cursor:pointer;color:var(--ink-muted);padding:0;font-family:inherit;text-align:left;margin-top:4px';
+      addBtn.onclick = () => { content[key] = content[key] || []; content[key].push(''); saveContent(); renderInfoOverlay(); };
+      el.appendChild(addBtn);
+    }
+  }
+  renderListCol(document.getElementById('info-clients'), content.clients, 'clients');
+  renderListCol(document.getElementById('info-capabilities'), content.capabilities, 'capabilities');
+
+  const socialsEl = document.getElementById('info-socials');
+  socialsEl.innerHTML = '';
+  (content.socials || []).forEach((s, i) => {
+    if (editMode) {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'display:flex;flex-direction:column;gap:3px';
+      const labelEl = document.createElement('span');
+      labelEl.contentEditable = true;
+      labelEl.textContent = s.label;
+      labelEl.style.cssText = 'font-size:var(--fs-small);font-weight:600';
+      labelEl.dataset.ed = '';
+      labelEl.addEventListener('blur', () => {
+        content.socials[i].label = labelEl.textContent.trim();
+        saveContent();
+      });
+      const urlEl = document.createElement('input');
+      urlEl.type = 'url';
+      urlEl.value = s.url;
+      urlEl.placeholder = 'https://';
+      urlEl.style.cssText = 'font-size:var(--fs-small);border:none;border-bottom:1px solid var(--line);padding:2px 0;width:160px;font-family:inherit;outline:none;background:transparent';
+      urlEl.addEventListener('blur', () => { content.socials[i].url = urlEl.value; saveContent(); });
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = 'Remove';
+      removeBtn.style.cssText = 'font-size:11px;background:none;border:none;cursor:pointer;color:var(--ink-muted);padding:0;text-align:left';
+      removeBtn.onmouseover = () => removeBtn.style.color = 'var(--ink)';
+      removeBtn.onmouseout = () => removeBtn.style.color = 'var(--ink-muted)';
+      removeBtn.onclick = () => { content.socials.splice(i, 1); saveContent(); renderInfoOverlay(); };
+      wrap.appendChild(labelEl); wrap.appendChild(urlEl); wrap.appendChild(removeBtn);
+      socialsEl.appendChild(wrap);
+    } else {
+      const a = document.createElement('a');
+      a.href = safeUrl(s.url);
+      a.textContent = s.label;
+      a.className = 'hover-ul';
+      a.style.cssText = 'font-size:var(--fs-small);color:var(--ink);text-decoration:none';
+      socialsEl.appendChild(a);
+    }
+  });
+  if (editMode) {
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Add link';
+    addBtn.style.cssText = 'font-size:var(--fs-small);background:none;border:1px dashed var(--line);cursor:pointer;color:var(--ink-muted);padding:4px 10px;font-family:inherit;border-radius:2px';
+    addBtn.onmouseover = () => { addBtn.style.color = 'var(--ink)'; addBtn.style.borderColor = 'var(--ink)'; };
+    addBtn.onmouseout = () => { addBtn.style.color = 'var(--ink-muted)'; addBtn.style.borderColor = 'var(--line)'; };
+    addBtn.onclick = () => { content.socials.push({label:'New Link',url:'https://'}); saveContent(); renderInfoOverlay(); };
+    socialsEl.appendChild(addBtn);
+  }
+
+  // PNG sequence strip
+  const seqEl = document.getElementById('info-sequence');
+  const seqAddEl = document.getElementById('info-sequence-add');
+  if (seqEl) {
+    seqEl.innerHTML = '';
+    (content.infoSequence || []).forEach((url, i) => {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;flex-shrink:0';
+      const img = document.createElement('img');
+      img.src = safeImgUrl(url);
+      img.style.cssText = 'height:clamp(180px,30vh,360px);width:auto;display:block;object-fit:contain';
+      img.draggable = false;
+      wrap.appendChild(img);
+      if (editMode) {
+        const del = document.createElement('button');
+        del.textContent = '×';
+        del.style.cssText = 'position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center';
+        del.onclick = () => { content.infoSequence.splice(i,1); saveContent(); renderInfoOverlay(); };
+        wrap.appendChild(del);
+      }
+      seqEl.appendChild(wrap);
+    });
+    // Drag to scroll — guard prevents listener accumulation across re-renders
+    if (!seqEl._dragBound) {
+      seqEl._dragBound = true;
+      let sDown = false, sX = 0, sL = 0;
+      seqEl.addEventListener('mousedown', e => { sDown=true; sX=e.clientX; sL=seqEl.scrollLeft; seqEl.style.cursor='grabbing'; });
+      seqEl.addEventListener('mousemove', e => { if(!sDown)return; seqEl.scrollLeft=sL-(e.clientX-sX); });
+      seqEl.addEventListener('mouseup', ()=>{ sDown=false; seqEl.style.cursor='grab'; });
+      seqEl.addEventListener('mouseleave', ()=>{ sDown=false; seqEl.style.cursor='grab'; });
+    }
+  }
+  if (seqAddEl) seqAddEl.style.display = editMode ? 'block' : 'none';
+}
+
+function setCarouselAvail() {
+  const header = document.getElementById('site-header');
+  const bar    = document.getElementById('sticky-bottom');
+  const workBar = document.getElementById('work-bar');
+  const introRow = document.getElementById('work-intro-row');
+  const headerH  = header  ? header.getBoundingClientRect().bottom : 44;
+  const barH     = bar     ? bar.offsetHeight : 40;
+  const workBarH = workBar ? workBar.offsetHeight + parseInt(getComputedStyle(workBar).marginBottom || 0) : 0;
+  const introH   = introRow && introRow.style.display !== 'none' ? introRow.offsetHeight : 0;
+  const avail = window.innerHeight - headerH - barH - workBarH - introH;
+  document.getElementById('home-carousel-wrap').style.setProperty('--carousel-avail', avail + 'px');
+}
+
+function renderHome() {
+  const introEl = document.getElementById('home-intro');
+  introEl.innerHTML = content.homeIntro || '';
+  if (editMode) makeEditableRich(introEl, 'homeIntro');
+
+  const projects = editMode ? (content.projects || []) : (content.projects || []).filter(p => !p.hidden);
+
+  if (viewMode === 'grid') {
+    document.getElementById('home-carousel-wrap').style.display = 'block';
+    document.getElementById('home-list').style.display = 'none';
+    renderGrid(projects);
+    requestAnimationFrame(() => requestAnimationFrame(setCarouselAvail));
+  } else {
+    document.getElementById('home-carousel-wrap').style.display = 'none';
+    document.getElementById('home-list').style.display = 'block';
+    renderList(projects);
+  }
+}
+
+function parseAspect(str) {
+  const p = (str || '3/4').split('/').map(Number);
+  return (p[0] && p[1]) ? p[0] / p[1] : 0.75;
+}
+
+function renderGrid(projects) {
+  const grid = document.getElementById('home-grid');
+  const wrap = document.getElementById('home-carousel-wrap');
+  const section = document.getElementById('work');
+  grid.innerHTML = '';
+
+  grid.className = '';
+
+  // Aspect-ratio multipliers for visual rhythm — taller/shorter cards per position
+  const aspectMults = [1.35, 0.8, 1.15, 0.95, 1.5, 0.85];
+
+  // Always render as carousel — edit mode overlays controls on cards instead of switching layout
+  grid.classList.add('carousel-mode');
+  wrap.classList.add('carousel-mode');
+  grid.style.gridAutoRows = '';
+  grid.style.gap = '';
+
+  const heightMults = [1, 0.72, 0.88, 0.64, 1, 0.78];
+  const baseH = 'clamp(260px,44vh,540px)';
+
+  projects.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'carousel-card';
+    card.style.opacity = editMode ? '1' : '0';
+    card.dataset.pid = p.id;
+    if (p.hidden && editMode) card.style.opacity = '0.38';
+
+    const hMult = heightMults[i % heightMults.length];
+    const boxH = `calc(${baseH} * ${hMult.toFixed(4)})`;
+
+    const imgBox = document.createElement('div');
+    imgBox.className = 'c-img-box';
+    imgBox.style.height = boxH;
+    // Width starts at a placeholder; corrected once image loads
+    const fallbackAspect = parseAspect(p.aspect);
+    imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
+
+    if (p.image) {
+      const img = document.createElement('img');
+      img.className = 'c-img';
+      img.src = safeImgUrl(p.image);
+      img.alt = p.title || '';
+      img.decoding = 'async';
+      img.draggable = false;
+      img.onload = () => {
+        if (img.naturalWidth && img.naturalHeight) {
+          const nat = img.naturalWidth / img.naturalHeight;
+          imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${nat.toFixed(4)})`;
+          if (typeof setCarouselAvail === 'function') setCarouselAvail();
+        }
+      };
+      imgBox.appendChild(img);
+    } else {
+      imgBox.style.background = 'var(--paper-deep)';
+    }
+    card.appendChild(imgBox);
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'c-title';
+    const raw = p.descriptor || p.title || '';
+    titleEl.textContent = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    card.appendChild(titleEl);
+
+    const catEl = document.createElement('div');
+    catEl.className = 'c-cat';
+    catEl.textContent = p.role || '';
+    if (editMode) {
+      catEl.contentEditable = true;
+      catEl.dataset.ed = '';
+      catEl.style.opacity = '1';
+      catEl.style.transform = 'none';
+      catEl.style.pointerEvents = 'auto';
+      catEl.style.minWidth = '60px';
+      if (!p.role) catEl.setAttribute('data-placeholder', 'industry');
+      catEl.addEventListener('blur', () => { p.role = catEl.textContent.trim(); saveContent(); });
+      catEl.addEventListener('click', e => e.stopPropagation());
+    }
+    card.appendChild(catEl);
+
+    if (!editMode) {
+      const _titleEl = document.getElementById('carousel-active-title');
+      card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); });
+      card.addEventListener('mouseleave', () => _titleEl.classList.remove('visible'));
+      imgBox.addEventListener('mouseenter', () => { const img = imgBox.querySelector('.c-img'); if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = 'scale(1.05)'; } });
+      imgBox.addEventListener('mouseleave', () => { const img = imgBox.querySelector('.c-img'); if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = ''; } });
+      let _spotRaf = null;
+      imgBox.addEventListener('mousemove', e => {
+        if (_spotRaf) return;
+        _spotRaf = requestAnimationFrame(() => {
+          _spotRaf = null;
+          const r = imgBox.getBoundingClientRect();
+          imgBox.style.setProperty('--sx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+          imgBox.style.setProperty('--sy', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+        });
+      });
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-label', p.title || 'View project');
+      card.addEventListener('click', () => navigate('#/project/' + p.id));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('#/project/' + p.id); } });
+
+      const delay = i * 70;
+      requestAnimationFrame(() => { setTimeout(() => { card.style.animation = `carouselSlideUp 0.65s cubic-bezier(0.22,1,0.36,1) ${delay}ms forwards`; }, 0); });
+    } else {
+      // Reorder arrows top-left / top-right
+      const arrows = document.createElement('div');
+      arrows.style.cssText = 'position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:5;pointer-events:none';
+      const mkArrow = (label, fn) => {
+        const btn = document.createElement('button');
+        btn.textContent = label;
+        btn.style.cssText = 'pointer-events:auto;background:rgba(20,20,18,0.6);backdrop-filter:blur(6px);border:none;color:#fff;font-size:15px;width:30px;height:30px;border-radius:5px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center';
+        btn.addEventListener('click', e => { e.stopPropagation(); fn(); });
+        return btn;
+      };
+      arrows.appendChild(mkArrow('←', () => {
+        const idx = content.projects.findIndex(x => x.id === p.id);
+        if (idx > 0) { content.projects.splice(idx - 1, 0, content.projects.splice(idx, 1)[0]); saveContent(); renderHome(); }
+      }));
+      arrows.appendChild(mkArrow('→', () => {
+        const idx = content.projects.findIndex(x => x.id === p.id);
+        if (idx < content.projects.length - 1) { content.projects.splice(idx + 1, 0, content.projects.splice(idx, 1)[0]); saveContent(); renderHome(); }
+      }));
+      card.appendChild(arrows);
+
+      // Action chips below arrows
+      const chips = document.createElement('div');
+      chips.style.cssText = 'position:absolute;top:46px;left:8px;display:flex;gap:5px;flex-wrap:wrap;z-index:5';
+      const imgBtn = makeChip(p.image ? 'Replace' : 'Add image', () => triggerUpload('project.'+p.id+'.image'));
+      const eyeBtn = makeChip(p.hidden ? 'Show' : 'Hide', () => { p.hidden = !p.hidden; saveContent(); renderHome(); });
+      eyeBtn.style.background = p.hidden ? '#1C6CEB' : 'rgba(30,30,28,0.55)';
+      const delBtn = makeChip('Delete', () => { if (confirm('Delete?')) { content.projects = content.projects.filter(x => x.id !== p.id); saveContent(); renderHome(); } });
+      chips.appendChild(imgBtn); chips.appendChild(eyeBtn); chips.appendChild(delBtn);
+      card.appendChild(chips);
+    }
+
+    grid.appendChild(card);
+  });
+
+  if (!editMode) {
+    // ── Infinite loop: duplicate cards so seamless wrap is possible ──────────
+    // We render 3 copies; when scrollLeft passes the middle copy boundary we
+    // silently jump back by one copy-width so it never ends.
+    const origCards = Array.from(grid.children);
+    const copySet = () => origCards.map(c => {
+      const cl = c.cloneNode(true);
+      // clones appear immediately — no slide-up animation
+      cl.style.animation = 'none';
+      cl.style.opacity = '1';
+      // re-wire title hover on clones
+      const pid = cl.dataset.pid;
+      const proj = projects.find(p => p.id === pid);
+      if (proj) {
+        const activeTitleEl = document.getElementById('carousel-active-title');
+        cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); });
+        cl.addEventListener('mouseleave', () => activeTitleEl.classList.remove('visible'));
+        cl.addEventListener('click', () => navigate('#/project/' + proj.id));
+      }
+      // Simple scale on clone's imgBox
+      const clImgBox = cl.querySelector('.c-img-box');
+      if (clImgBox) {
+        clImgBox.addEventListener('mouseenter', () => {
+          const img = clImgBox.querySelector('.c-img');
+          if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = 'scale(1.05)'; }
+        });
+        clImgBox.addEventListener('mouseleave', () => {
+          const img = clImgBox.querySelector('.c-img');
+          if (img) { img.style.transition = 'transform 0.55s cubic-bezier(0.22,1,0.36,1)'; img.style.transform = ''; }
+        });
+      }
+      return cl;
+    });
+    // Prepend one copy before, append one copy after
+    const before = copySet();
+    const after  = copySet();
+    before.reverse().forEach(c => grid.insertBefore(c, grid.firstChild));
+    after.forEach(c => grid.appendChild(c));
+
+    // Measure one "set" width after DOM is laid out
+    const getSetWidth = () => {
+      let w = 0;
+      origCards.forEach(c => { w += c.offsetWidth + 12; }); // 12 = gap
+      return w;
+    };
+
+    // ── Momentum / fluid scroll engine ────────────────────────────────────────
+    // We manage our own position float (pos) and drive grid.scrollLeft from it
+    // so we can apply friction smoothly without CSS scroll-behavior interference.
+    grid.style.scrollBehavior = 'auto';
+    let pos = 0;          // current scroll position (float)
+    let vel = 0;          // current velocity px/frame
+    let rafId = null;
+    let setW = 0;         // width of one card set
+    let initialised = false;
+
+    const initPos = () => {
+      setW = getSetWidth();
+      // Start at the beginning of the middle copy
+      pos = setW;
+      grid.scrollLeft = pos;
+      initialised = true;
+    };
+
+    // Wait one frame for layout
+    requestAnimationFrame(() => { requestAnimationFrame(() => {
+      initPos();
+      requestAnimationFrame(() => {
+        updateMobileTitle();
+        if (isMobile && activeTitleEl) activeTitleEl.classList.add('visible');
+        // Kick a short idle so the title stays current without a full tick loop
+        if (isMobile) { rafId = requestAnimationFrame(tick); }
+      });
+    }); });
+
+    const FRICTION  = 0.92;
+    const MIN_VEL   = 0.15;
+    const MAX_SKEW  = 5;     // deg skew on the box at peak velocity
+    const MAX_STRETCH = 0.18; // how much the img stretches beyond its box (scaleX)
+    const VEL_SCALE = 40;    // velocity at which max effect is reached
+
+    // Cache boxes after clones are appended — set after initPos
+    let _fxBoxes = null;
+    let _fxActive = false;
+    const applyMotionFx = (v) => {
+      // During steady auto-scroll the effect would be constant — skip entirely
+      if (autoScroll && Math.abs(v - AUTO_VEL) < 0.08) {
+        if (_fxActive) { applyMotionFx(0); } // ensure cleared on transition to steady
+        return;
+      }
+      const t    = Math.min(Math.abs(v) / VEL_SCALE, 1);
+      const dir  = Math.sign(v);
+      const skew = (t * MAX_SKEW * dir).toFixed(3);
+      const imgScale = (1 + t * MAX_STRETCH).toFixed(4);
+      const originX  = dir > 0 ? '0%' : '100%';
+      const active   = t > 0.01;
+      _fxActive = active;
+      if (!_fxBoxes) _fxBoxes = Array.from(grid.querySelectorAll('.c-img-box'));
+      _fxBoxes.forEach(box => {
+        box.style.transform  = active ? `skewX(${skew}deg)` : '';
+        box.style.willChange = active ? 'transform' : '';
+        const img = box.querySelector('.c-img');
+        if (img) {
+          img.style.transformOrigin = active ? `${originX} center` : '';
+          img.style.transform = active ? `scaleX(${imgScale}) ${img._hoverScale||''}` : img._hoverScale || '';
+        }
+      });
+    };
+
+    const AUTO_VEL  = 0.7;   // target auto-scroll speed (px/frame)
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let autoScroll  = false;
+    let idleTimer   = null;
+    let isHovered   = false;
+
+    const resetIdle = () => {
+      autoScroll = false;
+      clearTimeout(idleTimer);
+      if (!reducedMotion && !isHovered) idleTimer = setTimeout(() => { autoScroll = true; if (!rafId) rafId = requestAnimationFrame(tick); }, 1500);
+    };
+
+    const isMobile = window.matchMedia('(max-width:768px)').matches;
+    const activeTitleEl = document.getElementById('carousel-active-title');
+
+    const updateMobileTitle = () => {
+      if (!isMobile) return;
+      const cards = grid.querySelectorAll('.carousel-card');
+      const wRect = wrap.getBoundingClientRect();
+      const wCx = wRect.left + wRect.width / 2;
+      let closestCard = null, closestDist = Infinity;
+      cards.forEach(card => {
+        const rect = card.getBoundingClientRect();
+        const dist = Math.abs((rect.left + rect.width / 2) - wCx);
+        if (dist < closestDist) { closestDist = dist; closestCard = card; }
+      });
+      if (closestCard) {
+        const title = closestCard.dataset.pid && projects.find(p => p.id === closestCard.dataset.pid)?.title;
+        if (title && activeTitleEl.textContent !== title) {
+          activeTitleEl.textContent = title;
+          activeTitleEl.classList.add('visible');
+        }
+      }
+    };
+
+    const tick = () => {
+      if (autoScroll) {
+        // Ease velocity toward AUTO_VEL
+        vel += (AUTO_VEL - vel) * 0.04;
+      } else if (Math.abs(vel) < MIN_VEL) {
+        vel = 0;
+        if (!isMobile) applyMotionFx(0);
+        updateMobileTitle();
+        rafId = null;
+        return;
+      }
+      vel *= autoScroll ? 1 : FRICTION;
+      pos += vel;
+      // Seamless wrap
+      if (setW > 0) {
+        if (pos >= setW * 2) pos -= setW;
+        if (pos < setW)      pos += setW;
+      }
+      grid.scrollLeft = pos;
+      if (!isMobile) applyMotionFx(vel);
+      updateMobileTitle();
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const addVel = (delta) => {
+      resetIdle();
+      vel += delta * 0.8;   // wheel sensitivity
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    };
+
+    // Start idle timer immediately after layout
+    requestAnimationFrame(() => requestAnimationFrame(resetIdle));
+
+    // Wheel → velocity
+    const onWheel = (e) => { e.preventDefault(); addVel(e.deltaY + e.deltaX); };
+
+    // Drag → velocity
+    let isDragging = false, dragX = 0, lastX = 0, dragVel = 0;
+    const onMouseDown = (e) => {
+      resetIdle();
+      isDragging = true; dragX = e.clientX; lastX = e.clientX; dragVel = 0;
+      vel = 0;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+      wrap.style.cursor = 'grabbing';
+    };
+    const onMouseMove = (e) => {
+      if (!isDragging) return;
+      const dx = lastX - e.clientX;
+      dragVel = dx;
+      pos += dx;
+      if (setW > 0) {
+        if (pos >= setW * 2) pos -= setW;
+        if (pos < setW)      pos += setW;
+      }
+      grid.scrollLeft = pos;
+      lastX = e.clientX;
+    };
+    const onMouseUp = () => {
+      if (!isDragging) return;
+      isDragging = false;
+      wrap.style.cursor = '';
+      vel = dragVel * 2.5;  // fling: carry drag momentum
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    };
+
+    // Touch support — with velocity history for natural fling
+    let touchX = 0, touchY = 0, touchVel = 0, touchLocked = false;
+    const _tvHistory = []; // [{dx, t}] rolling window for fling
+    const onTouchStart = (e) => {
+      resetIdle();
+      touchX = e.touches[0].clientX;
+      touchY = e.touches[0].clientY;
+      touchVel = 0; touchLocked = false;
+      _tvHistory.length = 0;
+      vel = 0;
+      if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    };
+    const onTouchMove = (e) => {
+      const tx = e.touches[0].clientX;
+      const ty = e.touches[0].clientY;
+      const dx = touchX - tx;
+      const dy = touchY - ty;
+      // Lock axis on first significant move
+      if (!touchLocked) {
+        if (Math.abs(dx) > Math.abs(dy) + 4) { touchLocked = 'h'; }
+        else if (Math.abs(dy) > Math.abs(dx) + 4) { touchLocked = 'v'; }
+        else return;
+      }
+      if (touchLocked === 'v') return;
+      e.preventDefault();
+      const now = performance.now();
+      _tvHistory.push({ dx, t: now });
+      if (_tvHistory.length > 6) _tvHistory.shift();
+      touchVel = dx;
+      pos += dx;
+      if (setW > 0) {
+        if (pos >= setW * 2) pos -= setW;
+        if (pos < setW) pos += setW;
+      }
+      grid.scrollLeft = pos;
+      touchX = tx; touchY = ty;
+      updateMobileTitle();
+    };
+    const onTouchEnd = () => {
+      // Compute fling from recent history
+      const now = performance.now();
+      const recent = _tvHistory.filter(h => now - h.t < 80);
+      const fling = recent.length ? recent.reduce((s, h) => s + h.dx, 0) / recent.length : touchVel;
+      vel = fling * 2.2;
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    };
+
+    // Cleanup previous handlers (including leaked rAF loop)
+    if (grid._carouselHandlers) {
+      const h = grid._carouselHandlers;
+      wrap.removeEventListener('wheel', h.wheel, { passive: false });
+      wrap.removeEventListener('mousedown', h.mousedown);
+      wrap.removeEventListener('touchstart', h.touchstart);
+      wrap.removeEventListener('touchmove', h.touchmove);
+      wrap.removeEventListener('touchend', h.touchend);
+      window.removeEventListener('mousemove', h.mousemove);
+      window.removeEventListener('mouseup', h.mouseup);
+      if (h.stop) h.stop();
+    }
+    const stop = () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } clearTimeout(idleTimer); autoScroll = false; };
+    grid._carouselHandlers = { wheel: onWheel, mousedown: onMouseDown, mousemove: onMouseMove, mouseup: onMouseUp, touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd, stop };
+    wrap.addEventListener('wheel', onWheel, { passive: false });
+    wrap.addEventListener('mousedown', onMouseDown);
+    wrap.addEventListener('mouseenter', () => { isHovered = true; autoScroll = false; clearTimeout(idleTimer); vel = 0; });
+    wrap.addEventListener('mouseleave', () => { isHovered = false; if (!isDragging) resetIdle(); });
+    wrap.addEventListener('touchstart', onTouchStart, { passive: true });
+    wrap.addEventListener('touchmove', onTouchMove, { passive: false });
+    wrap.addEventListener('touchend', onTouchEnd, { passive: true });
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  } else {
+    // Edit mode: clean up any previous carousel physics handlers, use natural scroll
+    if (grid._carouselHandlers) {
+      const h = grid._carouselHandlers;
+      wrap.removeEventListener('wheel', h.wheel, { passive: false });
+      wrap.removeEventListener('mousedown', h.mousedown);
+      wrap.removeEventListener('touchstart', h.touchstart);
+      wrap.removeEventListener('touchmove', h.touchmove);
+      wrap.removeEventListener('touchend', h.touchend);
+      window.removeEventListener('mousemove', h.mousemove);
+      window.removeEventListener('mouseup', h.mouseup);
+      if (h.raf) cancelAnimationFrame(h.raf);
+      grid._carouselHandlers = null;
+    }
+    wrap.style.cursor = '';
+    wrap.style.overflowX = 'auto';
+  }
+}
+
+function renderList(projects) {
+  const list = document.getElementById('home-list');
+  list.innerHTML = '';
+  let listDragSrc = null;
+
+  // Sentence split: first half of words | second half
+  function splitTitle(title) {
+    const words = (title || '').trim().split(/\s+/);
+    const mid = Math.ceil(words.length / 2);
+    return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+  }
+
+  if (!editMode) {
+    // Sentence-style work list
+    const ul = document.createElement('ul');
+    ul.className = 'work-list';
+    ul.setAttribute('role', 'list');
+
+    const thumbObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const wrapper = entry.target.closest('.work-item-image');
+        // Defer one frame so browser paints the pixelated state first
+        requestAnimationFrame(() => wrapper.classList.add('in-viewport'));
+        thumbObserver.unobserve(entry.target);
+      });
+    }, { root: null, rootMargin: '50px', threshold: 0.1 });
+
+    projects.forEach((p, i) => {
+      const [before, after] = splitTitle(p.descriptor || p.title);
+      const li = document.createElement('li');
+      li.className = 'work-item';
+      if (animateCards) li.style.animation = `fadeUp 0.4s ease ${i * 40}ms both`;
+      li.dataset.pid = p.id;
+      li.addEventListener('click', () => navigate('#/project/' + p.id));
+
+      const beforeEl = document.createElement('span');
+      beforeEl.className = 'work-item-before';
+      beforeEl.textContent = before;
+      beforeEl.dataset.after = after; // for mobile CSS ::after
+
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'work-item-image';
+      if (p.image) {
+        const img = document.createElement('img');
+        img.src = safeImgUrl(p.image);
+        img.alt = '';
+        img.decoding = 'async';
+        img.draggable = false;
+        imgWrap.appendChild(img);
+        thumbObserver.observe(img);
+        // Fallback: mark in-viewport after a short delay in case observer doesn't fire
+        setTimeout(() => { if (!imgWrap.classList.contains('in-viewport')) imgWrap.classList.add('in-viewport'); }, 600);
+      }
+
+      const afterEl = document.createElement('span');
+      afterEl.className = 'work-item-after';
+      afterEl.textContent = after;
+
+      const clientEl = document.createElement('span');
+      clientEl.className = 'work-item-client';
+      clientEl.textContent = p.title || '';
+
+      li.appendChild(beforeEl);
+      li.appendChild(imgWrap);
+      li.appendChild(afterEl);
+      li.appendChild(clientEl);
+      ul.appendChild(li);
+    });
+
+    list.appendChild(ul);
+    return;
+  }
+
+  // Edit mode: keep the original grid layout with drag-to-reorder
+  projects.forEach((p, i) => {
+    const row = document.createElement('div');
+    row.style.cssText = `position:relative;border-bottom:1px solid var(--line);opacity:${p.hidden?0.38:1};`;
+    row.dataset.pid = p.id;
+    if (editMode) {
+      row.draggable = true;
+      row.style.cursor = 'grab';
+      row.addEventListener('dragstart', e => { listDragSrc = row; e.dataTransfer.effectAllowed = 'move'; setTimeout(() => row.style.opacity = '0.35', 0); });
+      row.addEventListener('dragend', () => { row.style.opacity = ''; row.style.background = ''; listDragSrc = null; list.querySelectorAll('[data-pid]').forEach(r => r.style.background = ''); });
+      row.addEventListener('dragover', e => { e.preventDefault(); if (row !== listDragSrc) row.style.background = 'var(--paper-deep)'; });
+      row.addEventListener('dragleave', () => row.style.background = '');
+      row.addEventListener('drop', e => {
+        e.preventDefault(); row.style.background = '';
+        if (!listDragSrc || listDragSrc === row) return;
+        const fi = content.projects.findIndex(x => x.id === listDragSrc.dataset.pid);
+        const ti = content.projects.findIndex(x => x.id === row.dataset.pid);
+        content.projects.splice(ti, 0, content.projects.splice(fi, 1)[0]);
+        saveContent(); renderHome();
+      });
+    }
+    const link = document.createElement('a');
+    link.href = '#/project/' + p.id;
+    link.className = 'list-row-link';
+    link.style.cssText = `display:grid;grid-template-columns:2.2fr 1fr auto;gap:var(--space-4);align-items:center;padding:var(--space-4) 0;padding-right:100px;color:var(--ink);text-decoration:none;transition:opacity 0.2s`;
+    link.addEventListener('click', e => { e.preventDefault(); });
+    const titleEl = document.createElement('span');
+    titleEl.style.cssText = 'font-size:1.625rem;font-weight:400;letter-spacing:-0.04em';
+    titleEl.textContent = p.title;
+    titleEl.contentEditable = true; titleEl.dataset.ed = '';
+    titleEl.addEventListener('blur', () => { p.title = titleEl.textContent.trim(); p.id = slugify(p.title); saveContent(); renderHome(); });
+    const descEl = document.createElement('span');
+    descEl.style.cssText = 'font-size:var(--fs-small);color:var(--ink-muted);line-height:1.4';
+    descEl.textContent = p.descriptor || '';
+    descEl.contentEditable = true; descEl.dataset.ed = '';
+    descEl.addEventListener('blur', () => { p.descriptor = descEl.textContent.trim(); saveContent(); });
+    link.appendChild(titleEl); link.appendChild(descEl);
+    row.appendChild(link);
+    const ctrl = document.createElement('div');
+    ctrl.style.cssText = 'position:absolute;top:50%;right:0;transform:translateY(-50%);display:flex;gap:6px;align-items:center';
+    const eyeBtn = makeChip(p.hidden ? 'Show' : 'Hide', () => { p.hidden = !p.hidden; saveContent(); renderHome(); });
+    eyeBtn.style.background = p.hidden ? '#1C6CEB' : 'rgba(30,30,28,0.55)';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete'; delBtn.style.cssText = 'background:none;border:none;font:inherit;font-size:var(--fs-label);cursor:pointer;color:var(--ink-muted);padding:4px';
+    delBtn.onmouseover = () => delBtn.style.color = 'var(--ink)'; delBtn.onmouseout = () => delBtn.style.color = 'var(--ink-muted)';
+    delBtn.onclick = () => { if (confirm('Delete?')) { content.projects = content.projects.filter(x => x.id !== p.id); saveContent(); renderHome(); } };
+    ctrl.appendChild(eyeBtn); ctrl.appendChild(delBtn);
+    row.appendChild(ctrl);
+    list.appendChild(row);
+  });
+}
+
+function renderProject() {
+  const proj = content.projects.find(p => p.id === currentProjectId);
+  if (!proj) { navigate('#/'); return; }
+
+  // Sidebar
+  const setEditable = (el, field) => {
+    el.textContent = proj[field] || '';
+    el.contentEditable = editMode;
+    el.dataset.ed = editMode ? '' : undefined;
+    el.onblur = editMode ? () => { proj[field] = el.textContent.trim(); saveContent(); } : null;
+  };
+  const titleEl = document.getElementById('proj-title');
+  titleEl.textContent = proj.title || '';
+  titleEl.contentEditable = editMode;
+  titleEl.dataset.ed = editMode ? '' : undefined;
+  titleEl.onblur = editMode ? () => {
+    proj.title = titleEl.textContent.trim();
+    proj.id = slugify(proj.title);
+    currentProjectId = proj.id;
+    history.replaceState(null, '', '#/project/' + proj.id);
+    saveContent();
+  } : null;
+  setEditable(document.getElementById('proj-client'), 'client');
+  setEditable(document.getElementById('proj-role'), 'role');
+  // Caption supports paragraph breaks
+  const captionEl = document.getElementById('proj-caption');
+  captionEl.innerHTML = proj.caption || '';
+  captionEl.contentEditable = editMode;
+  captionEl.dataset.ed = editMode ? '' : undefined;
+  if (editMode) {
+    captionEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); } };
+    captionEl.onblur = () => { proj.caption = captionEl.innerHTML; saveContent(); };
+  } else {
+    captionEl.onkeydown = null;
+    captionEl.onblur = null;
+  }
+  const creditsEl = document.getElementById('proj-credits');
+  creditsEl.innerHTML = proj.credits || '';
+  creditsEl.contentEditable = editMode;
+  creditsEl.dataset.ed = editMode ? '' : undefined;
+  if (!proj.credits && !editMode) { creditsEl.style.display = 'none'; } else { creditsEl.style.display = ''; }
+  if (editMode) {
+    creditsEl.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); } };
+    creditsEl.onblur = () => { proj.credits = creditsEl.innerHTML; creditsEl.style.display = proj.credits ? '' : 'none'; saveContent(); };
+  } else {
+    creditsEl.onkeydown = null;
+    creditsEl.onblur = null;
+  }
+
+  // Reorder strip (edit mode only)
+  const reorderEl = document.getElementById('block-reorder');
+  reorderEl.style.display = editMode ? 'flex' : 'none';
+  reorderEl.style.gap = '8px';
+  reorderEl.innerHTML = '';
+  if (editMode) {
+    let rDragSrc = null;
+    (proj.blocks || []).forEach((b, bi) => {
+      const thumb = document.createElement('div');
+      thumb.className = 'reorder-thumb';
+      thumb.draggable = true;
+      thumb.dataset.bid = b.id;
+
+      // Thumbnail preview
+      if (b.type === 'image' && b.src) {
+        const img = document.createElement('img');
+        img.className = 'reorder-thumb-img';
+        img.src = safeImgUrl(b.src);
+        img.draggable = false;
+        thumb.appendChild(img);
+      } else if (b.type === 'video' && b.src) {
+        const vid = document.createElement('video');
+        vid.className = 'reorder-thumb-img';
+        vid.src = safeImgUrl(b.src);
+        vid.muted = true; vid.preload = 'metadata';
+        vid.style.cssText = 'width:80px;height:60px;object-fit:cover;border-radius:3px;background:var(--paper-deep);display:block;pointer-events:none';
+        thumb.appendChild(vid);
+      } else {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'reorder-thumb-img';
+        placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-muted);border:1px solid var(--line);border-radius:3px';
+        placeholder.textContent = b.type === 'text' ? 'T' : b.type;
+        thumb.appendChild(placeholder);
+      }
+
+      const label = document.createElement('span');
+      label.className = 'reorder-thumb-label';
+      label.textContent = (bi + 1) + ' · ' + b.span + '/12';
+      thumb.appendChild(label);
+
+      // Drag reorder
+      thumb.addEventListener('dragstart', e => {
+        rDragSrc = thumb;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => thumb.classList.add('dragging'), 0);
+      });
+      thumb.addEventListener('dragend', () => {
+        thumb.classList.remove('dragging');
+        reorderEl.querySelectorAll('.reorder-thumb').forEach(t => t.classList.remove('drag-over'));
+        rDragSrc = null;
+      });
+      thumb.addEventListener('dragover', e => { e.preventDefault(); if (thumb !== rDragSrc) thumb.classList.add('drag-over'); });
+      thumb.addEventListener('dragleave', () => thumb.classList.remove('drag-over'));
+      thumb.addEventListener('drop', e => {
+        e.preventDefault();
+        thumb.classList.remove('drag-over');
+        if (!rDragSrc || rDragSrc === thumb) return;
+        const fi = proj.blocks.findIndex(x => x.id === rDragSrc.dataset.bid);
+        const ti = proj.blocks.findIndex(x => x.id === thumb.dataset.bid);
+        if (fi < 0 || ti < 0) return;
+        proj.blocks.splice(ti, 0, proj.blocks.splice(fi, 1)[0]);
+        saveContent();
+        renderProject();
+      });
+
+      // Click to delete
+      const del = document.createElement('button');
+      del.textContent = '×';
+      del.title = 'Remove block';
+      del.style.cssText = 'position:absolute;top:2px;right:2px;background:rgba(30,30,28,0.7);color:#fff;border:none;border-radius:2px;width:16px;height:16px;font-size:10px;cursor:pointer;line-height:1;padding:0;display:none';
+      thumb.style.position = 'relative';
+      thumb.appendChild(del);
+      thumb.addEventListener('mouseenter', () => del.style.display = 'block');
+      thumb.addEventListener('mouseleave', () => del.style.display = 'none');
+      del.addEventListener('click', e => { e.stopPropagation(); if (confirm('Remove this block?')) { proj.blocks = proj.blocks.filter(x => x.id !== b.id); saveContent(); renderProject(); } });
+
+      reorderEl.appendChild(thumb);
+    });
+  }
+
+  // Blocks
+  const blocksEl = document.getElementById('project-blocks');
+  blocksEl.innerHTML = '';
+  let dragSrc = null;
+
+  (proj.blocks || []).forEach((b, bi) => {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = `grid-column:span ${b.span};position:relative;${animateCards?'animation:fadeUp 0.5s ease '+((bi+1)*70)+'ms both':''}`;
+    wrap.dataset.bid = b.id;
+
+    if (editMode) {
+      wrap.draggable = true;
+      wrap.addEventListener('dragstart', e => {
+        dragSrc = wrap;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => wrap.style.opacity = '0.35', 0);
+      });
+      wrap.addEventListener('dragend', () => { wrap.style.opacity = ''; dragSrc = null; blocksEl.querySelectorAll('[data-bid]').forEach(el => el.style.outline = ''); });
+      wrap.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (wrap !== dragSrc) wrap.style.outline = '2px solid var(--ink)'; });
+      wrap.addEventListener('dragleave', () => wrap.style.outline = '');
+      wrap.addEventListener('drop', e => {
+        e.preventDefault();
+        wrap.style.outline = '';
+        if (!dragSrc || dragSrc === wrap) return;
+        const fromId = dragSrc.dataset.bid, toId = wrap.dataset.bid;
+        const fi = proj.blocks.findIndex(x => x.id === fromId);
+        const ti = proj.blocks.findIndex(x => x.id === toId);
+        if (fi < 0 || ti < 0) return;
+        proj.blocks.splice(ti, 0, proj.blocks.splice(fi, 1)[0]);
+        saveContent();
+        renderProject();
+      });
+    }
+    if (b.type === 'image') {
+      const imgWrap = document.createElement('div');
+      imgWrap.style.cssText = `width:100%;max-width:100%;aspect-ratio:${b.aspect||'4/5'};background-color:var(--paper-deep);position:relative;overflow:hidden`;
+      if (b.src) {
+        const bImg = document.createElement('img');
+        bImg.src = safeImgUrl(b.src);
+        bImg.className = 'proj-block-img';
+        bImg.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block';
+        bImg.decoding = 'async';
+        bImg.onerror = () => console.warn('Block image failed to load:', bImg.src);
+        imgWrap.appendChild(bImg);
+      }
+      wrap.appendChild(imgWrap);
+    } else if (b.type === 'video') {
+      const vid = document.createElement('video');
+      vid.setAttribute('autoplay', '');
+      vid.setAttribute('loop', '');
+      vid.setAttribute('muted', '');
+      vid.setAttribute('playsinline', '');
+      vid.setAttribute('preload', 'auto');
+      vid.style.cssText = `width:100%;display:block;aspect-ratio:${b.aspect||'16/9'};object-fit:cover;background-color:var(--paper-deep)`;
+      if (b.src) {
+        const url = safeImgUrl(b.src);
+        const lower = url.toLowerCase().split('?')[0];
+        // Try mp4 first (widest support), then webm
+        const isWebm = lower.endsWith('.webm');
+        // Always set src directly — avoids <source> timing issues with autoplay
+        vid.src = url;
+        if (!isWebm) {
+          // Also add webm source as fallback if mp4 doesn't load
+          vid.setAttribute('type', 'video/mp4');
+        }
+      }
+      wrap.appendChild(vid);
+      if (b.src) {
+        vid.load();
+        vid.play().catch(err => console.warn('Video autoplay blocked:', err));
+      }
+    } else if (b.type === 'text') {
+      if (editMode) {
+        const fmt = document.createElement('div');
+        fmt.style.cssText = 'display:flex;gap:4px;margin-bottom:4px';
+        ['bold','italic','underline','insertUnorderedList','justifyLeft'].forEach((cmd, ci) => {
+          const labels = ['B','I','U','•','≡'];
+          const btn = document.createElement('button');
+          btn.textContent = labels[ci];
+          btn.style.cssText = 'background:var(--ink);color:#fff;border:none;font-family:inherit;font-size:11px;cursor:pointer;padding:3px 7px;border-radius:3px';
+          btn.addEventListener('mousedown', e => { e.preventDefault(); document.execCommand(cmd, false, null); });
+          fmt.appendChild(btn);
+        });
+        wrap.appendChild(fmt);
+      }
+      const textEl = document.createElement('div');
+      textEl.innerHTML = b.text || '';
+      textEl.style.cssText = 'font-size:clamp(1rem,1.4vw,1.375rem);line-height:1.5;color:var(--ink);max-width:64ch;padding:12px 0';
+      if (editMode) {
+        textEl.contentEditable = true; textEl.dataset.ed = '';
+        textEl.addEventListener('blur', () => { b.text = textEl.innerHTML; saveContent(); });
+      }
+      wrap.appendChild(textEl);
+    }
+
+    if (editMode) {
+      const ctrl = document.createElement('div');
+      ctrl.style.cssText = 'position:absolute;top:8px;left:8px;display:flex;gap:6px;align-items:center';
+      const handle = document.createElement('span');
+      handle.textContent = '⠿';
+      handle.title = 'Drag to reorder';
+      handle.style.cssText = 'cursor:grab;color:#fff;background:rgba(30,30,28,0.55);border-radius:3px;padding:3px 6px;font-size:12px;line-height:1;user-select:none';
+      ctrl.appendChild(handle);
+      const spans = [4,6,8,12];
+      const widthBtn = makeChip(b.span+'/12', () => {
+        b.span = spans[(spans.indexOf(b.span)+1)%spans.length];
+        saveContent(); renderProject();
+      });
+      ctrl.appendChild(widthBtn);
+      if (b.type === 'image') ctrl.appendChild(makeChip('Image', () => triggerUpload('block.'+proj.id+'.'+b.id+'.src')));
+      if (b.type === 'video') ctrl.appendChild(makeChip('Video', () => triggerUpload('block.'+proj.id+'.'+b.id+'.src')));
+      ctrl.appendChild(makeChip('×', () => { proj.blocks = proj.blocks.filter(x => x.id !== b.id); saveContent(); renderProject(); }));
+      wrap.appendChild(ctrl);
+    }
+    blocksEl.appendChild(wrap);
+  });
+
+  // Fade + unblur on load for project block images
+  if (!editMode) {
+    blocksEl.querySelectorAll('.proj-block-img').forEach(img => {
+      const reveal = () => img.classList.add('loaded');
+      if (img.complete && img.naturalWidth > 0) {
+        // Already cached — defer one frame so the CSS transition still runs
+        requestAnimationFrame(() => requestAnimationFrame(reveal));
+      } else {
+        img.addEventListener('load', reveal, { once: true });
+      }
+    });
+  }
+
+  // Add blocks
+  const addBlocksEl = document.getElementById('add-blocks');
+  addBlocksEl.style.display = editMode ? 'flex' : 'none';
+  addBlocksEl.querySelectorAll('button').forEach(btn => {
+    btn.onclick = null;
+    btn.onclick = () => addBlock(btn.textContent.replace(' block','').toLowerCase(), proj.id);
+  });
+
+  // Prev / Next
+  const n = content.projects.length;
+  const idx = content.projects.findIndex(p => p.id === currentProjectId);
+  const prev = content.projects[(idx-1+n)%n];
+  const next = content.projects[(idx+1)%n];
+  document.getElementById('proj-prev').href = '#/project/' + prev.id;
+  document.getElementById('proj-prev-title').textContent = prev.title;
+  document.getElementById('proj-next').href = '#/project/' + next.id;
+  document.getElementById('proj-next-title').textContent = next.title;
+}
+
+function handleProjNav(e, dir) {
+  e.preventDefault();
+  const a = document.getElementById(dir === 'prev' ? 'proj-prev' : 'proj-next');
+  const hash = a.href.substring(a.href.indexOf('#'));
+  navigate(hash, dir === 'next' ? 'forward' : 'back');
+}
+
+// ─── Info overlay ─────────────────────────────────────────────────────────────
+const _PALETTE = {
+  light:{ paper:'#F5F4F1', paperDeep:'#ECEAE4', ink:'#1A1A18', inkMuted:'#767570', line:'#D8D5CD', hdr:'#F5F4F1' },
+  dark: { paper:'#111111', paperDeep:'#1a1a1a', ink:'#f0efe9', inkMuted:'#9a9994', line:'#2e2e2b', hdr:'#111111' }
+};
+
+function _lerpHex(a, b, t) {
+  const p = h => [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const [ar,ag,ab]= p(a), [br,bg,bb]= p(b);
+  const c = x => Math.max(0,Math.min(255,Math.round(x)));
+  const hx = x => x.toString(16).padStart(2,'0');
+  return `#${hx(c(ar+(br-ar)*t))}${hx(c(ag+(bg-ag)*t))}${hx(c(ab+(bb-ab)*t))}`;
+}
+
+function _setThemeIcon(theme) {
+  const el = document.getElementById('dark-icon');
+  if (!el) return;
+  el.innerHTML = theme === 'dark'
+    ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`
+    : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+}
+
+function _applyThemeInstant(theme) {
+  const pal = _PALETTE[theme] || _PALETTE.light;
+  if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+  else document.documentElement.removeAttribute('data-theme');
+  ['--paper','--paper-deep','--ink','--ink-muted','--line'].forEach(v => document.documentElement.style.removeProperty(v));
+  const hdr = document.getElementById('site-header');
+  if (hdr) hdr.style.background = pal.hdr;
+  const g = document.getElementById('loader-ghost'), f = document.getElementById('loader-fill');
+  if (g) g.setAttribute('fill', pal.ink);
+  if (f) f.setAttribute('fill', pal.ink);
+  _setThemeIcon(theme);
+}
+
+function applyTheme(theme, animate) {
+  if (!animate || !window.anime || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { _applyThemeInstant(theme); return; }
+
+  const currentDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const from = _PALETTE[currentDark ? 'dark' : 'light'];
+  const to   = _PALETTE[theme === 'dark' ? 'dark' : 'light'];
+
+  _setThemeIcon(theme);
+  const proxy = { t: 0 };
+  anime({
+    targets: proxy, t: 1, duration: 4200, easing: 'cubicBezier(0.4,0,0.2,1)',
+    update() {
+      const t = proxy.t;
+      const L = (a,b) => _lerpHex(a, b, t);
+      const pc = L(from.paper, to.paper);
+      document.documentElement.style.setProperty('--paper',      pc);
+      document.documentElement.style.setProperty('--paper-deep', L(from.paperDeep,  to.paperDeep));
+      document.documentElement.style.setProperty('--ink',        L(from.ink,        to.ink));
+      document.documentElement.style.setProperty('--ink-muted',  L(from.inkMuted,   to.inkMuted));
+      document.documentElement.style.setProperty('--line',       L(from.line,       to.line));
+      const hdr = document.getElementById('site-header');
+      if (hdr) hdr.style.background = pc;
+      const sb = document.getElementById('sticky-bottom');
+      if (sb) sb.style.background = pc;
+      const g = document.getElementById('loader-ghost'), f = document.getElementById('loader-fill');
+      if (g) g.setAttribute('fill', L(from.ink, to.ink));
+      if (f) f.setAttribute('fill', L(from.ink, to.ink));
+    },
+    complete() {
+      if (theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+      else document.documentElement.removeAttribute('data-theme');
+      ['--paper','--paper-deep','--ink','--ink-muted','--line'].forEach(v => document.documentElement.style.removeProperty(v));
+      const hdr = document.getElementById('site-header');
+      if (hdr) hdr.style.background = to.hdr;
+      const sb = document.getElementById('sticky-bottom');
+      if (sb) sb.style.background = '';
+      const g = document.getElementById('loader-ghost'), f = document.getElementById('loader-fill');
+      if (g) g.setAttribute('fill', to.ink);
+      if (f) f.setAttribute('fill', to.ink);
+    }
+  });
+}
+
+function toggleDarkMode() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const next = dark ? 'light' : 'dark';
+  applyTheme(next, true);
+  localStorage.setItem('dae_theme', next);
+}
+
+function toggleInfo() {
+  infoOpen = !infoOpen;
+  const overlay = document.getElementById('info-overlay');
+  document.getElementById('info-label').textContent = infoOpen ? 'Close' : 'Info';
+
+  if (infoOpen) {
+    overlay.style.display = 'block';
+    renderInfoOverlay();
+
+    // Reset all animated elements to hidden start state
+    const animEls = overlay.querySelectorAll('.info-anim');
+    anime.set(animEls, { opacity: 0, translateY: 22 });
+
+    // Overlay fades in; header row stays fixed so the name doesn't jump
+    anime.set(overlay, { opacity: 0 });
+    anime({ targets: overlay, opacity: 1, duration: 340, easing: 'easeOutExpo' });
+
+    // Bio fades in fast and first
+    const bioEl = overlay.querySelector('#info-bio');
+    if (bioEl) anime({ targets: bioEl, opacity: [0, 1], translateY: [14, 0], duration: 380, delay: 80, easing: 'easeOutExpo' });
+
+    // Stagger remaining content blocks
+    const otherEls = Array.from(animEls).filter(el => el !== bioEl);
+    anime({
+      targets: otherEls,
+      opacity: [0, 1],
+      translateY: [22, 0],
+      duration: 600,
+      delay: anime.stagger(90, { start: 200 }),
+      easing: 'easeOutExpo'
+    });
+
+    // Animate list items inside columns
+    setTimeout(() => {
+      const listItems = overlay.querySelectorAll('#info-clients span, #info-capabilities span');
+      anime.set(listItems, { opacity: 0, translateX: -8 });
+      anime({
+        targets: listItems,
+        opacity: [0, 1],
+        translateX: [-8, 0],
+        duration: 400,
+        delay: anime.stagger(40, { start: 0 }),
+        easing: 'easeOutExpo'
+      });
+    }, 300);
+
+  } else {
+    anime({
+      targets: overlay,
+      opacity: 0,
+      duration: 220,
+      easing: 'easeInExpo',
+      complete: () => { overlay.style.display = 'none'; anime.set(overlay, { opacity: 1 }); }
+    });
+  }
+}
+
+// ─── Edit mode ────────────────────────────────────────────────────────────────
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.dataset.edit = editMode;
+  updateEditUI();
+  render();
+}
+
+function updateEditUI() {
+  const extras = document.getElementById('toolbar-extras');
+  extras.style.display = editMode ? 'flex' : 'none';
+  const btn = document.getElementById('edit-btn');
+  btn.textContent = editMode ? 'Done' : 'Edit';
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  btn.style.background = editMode ? (dark ? '#2a2a28' : '#fff') : 'transparent';
+  btn.style.color = editMode ? (dark ? '#f0efe9' : '#1A1A18') : '#fff';
+}
+
+function logoutEdit() {
+  editMode = false;
+  sessionStorage.removeItem(EDIT_AUTH_KEY);
+  render();
+}
+
+function changeEditPassword() {
+  const pw = prompt('New editor password (leave blank to remove):');
+  if (pw === null) return;
+  content.editPassword = pw.trim();
+  saveContent();
+  if (pw.trim()) {
+    sessionStorage.setItem(EDIT_AUTH_KEY, pw.trim());
+    alert('Password updated.');
+  } else {
+    sessionStorage.removeItem(EDIT_AUTH_KEY);
+    alert('Editor password removed — anyone can now access the Edit toolbar via #/login.');
+  }
+}
+
+function setView(mode) {
+  viewMode = mode;
+  const lockScroll = mode !== 'list';
+  document.documentElement.style.overflow = lockScroll ? 'hidden' : '';
+  document.body.style.overflow = lockScroll ? 'hidden' : '';
+  updateViewBtns();
+  renderHome();
+}
+
+function updateViewBtns() {
+  const gridBtn = document.getElementById('grid-btn');
+  const listBtn = document.getElementById('list-btn');
+  const gridLbl = document.getElementById('grid-btn-label');
+  const listLbl = document.getElementById('list-btn-label');
+  const on = (btn, lbl) => { if(btn){btn.style.color='var(--ink)';btn.style.fontWeight='600';} if(lbl){lbl.style.textDecoration='underline';lbl.style.textUnderlineOffset='.2em';} };
+  const off = (btn, lbl) => { if(btn){btn.style.color='var(--ink-muted)';btn.style.fontWeight='400';} if(lbl){lbl.style.textDecoration='none';} };
+  viewMode==='grid' ? (on(gridBtn,gridLbl),off(listBtn,listLbl)) : (off(gridBtn,gridLbl),on(listBtn,listLbl));
+}
+
+// ─── Edit helpers ─────────────────────────────────────────────────────────────
+function makeEditableRich(el, path) {
+  el.contentEditable = true;
+  el.dataset.ed = '';
+  el.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.execCommand('insertLineBreak'); }
+  };
+  el.onblur = () => updatePath(path, el.innerHTML);
+}
+
+function updatePath(path, value) {
+  const parts = path.split('.');
+  if (parts[0] === 'project') {
+    const p = content.projects.find(x => x.id === parts[1]);
+    if (p) p[parts[2]] = value;
+  } else if (parts[0] === 'block') {
+    const p = content.projects.find(x => x.id === parts[1]);
+    const b = p && p.blocks.find(x => x.id === parts[2]);
+    if (b) b[parts[3]] = value;
+  } else if (path === 'infoSequence') {
+    content.infoSequence = content.infoSequence || [];
+    content.infoSequence.push(value);
+  } else {
+    content[parts[0]] = value;
+  }
+  saveContent();
+}
+
+// Encode Supabase URLs that may contain spaces or special chars (Safari is strict)
+function safeUrl(url) {
+  if (!url) return '#';
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:' && u.protocol !== 'mailto:') return '#';
+    return u.href;
+  } catch(e) { return '#'; }
+}
+
+function safeImgUrl(url) {
+  if (!url || url.startsWith('data:')) return url;
+  try {
+    const u = new URL(url);
+    return u.href; // URL constructor properly encodes path components
+  } catch(e) { return url; }
+}
+
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || ('p' + Date.now());
+}
+
+function makeChip(label, onclick) {
+  const btn = document.createElement('button');
+  btn.textContent = label;
+  btn.className = 'chip-btn';
+  btn.addEventListener('click', onclick);
+  return btn;
+}
+
+// ─── Project management ───────────────────────────────────────────────────────
+function addProject() {
+  const id = 'p' + Date.now();
+  content.projects.push({
+    id, title:'New Project', image:null, aspect:'4/5', client:'Client', year:'2026',
+    role:'Brand Identity', category:'Brand Identity', caption:'Add a description.', descriptor:'', credits:'',
+    hidden:false, blocks:[{id:'b'+Date.now(),type:'image',src:null,span:12,aspect:'16/9'}]
+  });
+  saveContent();
+  render();
+}
+
+function addBlock(type, projId) {
+  const pid = projId || currentProjectId;
+  const proj = content.projects.find(p => p.id === pid);
+  if (!proj) return;
+  const id = 'b' + Date.now();
+  if (type === 'text') proj.blocks.push({id,type:'text',text:'New text block.',span:8});
+  else if (type === 'video') proj.blocks.push({id,type:'video',src:null,span:12,aspect:'16/9'});
+  else proj.blocks.push({id,type:'image',src:null,span:6,aspect:'4/5'});
+  saveContent();
+  renderProject();
+}
+
+// ─── File uploads ─────────────────────────────────────────────────────────────
+function triggerUpload(path) {
+  uploadPath = path;
+  const fi = document.getElementById('file-input');
+  fi.value = ''; fi.click();
+}
+
+function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+function aspectRatio(w, h) { const d = gcd(w, h); return (w/d) + '/' + (h/d); }
+
+// Upload a data URL to Supabase Storage; resolves with the public URL.
+function sanitizeFilename(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').replace(/_+/g, '_');
+}
+
+async function uploadToStorage(dataUrl, mimeType, filename) {
+  const safe = sanitizeFilename(filename);
+  const res = await fetch(dataUrl);
+  const blob = await res.blob();
+  const uploadRes = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${safe}`,
+    { method: 'POST', headers: { 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': mimeType, 'x-upsert': 'true' }, body: blob }
+  );
+  if (!uploadRes.ok) throw new Error('Storage upload failed: ' + uploadRes.status);
+  return `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${safe}`;
+}
+
+function setAspectOnPath(path, ratio) {
+  const parts = path.split('.');
+  if (parts[0] === 'block' && parts[3] === 'src') {
+    const proj = content.projects.find(x => x.id === parts[1]);
+    const blk = proj && proj.blocks.find(x => x.id === parts[2]);
+    if (blk) blk.aspect = ratio;
+  } else if (parts[0] === 'project' && parts[2] === 'image') {
+    const proj = content.projects.find(x => x.id === parts[1]);
+    if (proj) proj.aspect = ratio;
+  }
+}
+
+function onFile(e) {
+  const f = e.target.files && e.target.files[0];
+  if (!f || !uploadPath) return;
+  const reader = new FileReader();
+  const path = uploadPath;
+  reader.onload = async () => {
+    const raw = reader.result;
+    showSaveStatus('Uploading…', 'rgba(255,255,255,0.6)');
+
+    if (!f.type.startsWith('image/')) {
+      // Video — normalise MIME type and ensure .mp4 extension for broadest browser support
+      const rawMime = f.type || 'video/mp4';
+      const mime = rawMime === 'video/quicktime' ? 'video/mp4' : rawMime;
+      const ext = mime === 'video/webm' ? '.webm' : '.mp4';
+      const baseName = f.name.replace(/\.[^.]+$/, '') || 'video';
+      const filename = sanitizeFilename(Date.now() + '_' + baseName) + ext;
+      try {
+        const url = await uploadToStorage(raw, mime, filename);
+        updatePath(path, url);
+        uploadPath = null;
+        render();
+      } catch(err) {
+        console.error('Video upload failed:', err);
+        alert('Video upload failed — check your internet connection and try again.\n\n' + err.message);
+        showSaveStatus('Upload failed ✗', '#fca5a5');
+        uploadPath = null;
+      }
+      return;
+    }
+
+    // GIFs/SVGs/PNGs: upload original file directly — no canvas (preserves animation + transparency)
+    if (f.type === 'image/gif' || f.type === 'image/svg+xml' || f.type === 'image/png') {
+      const im = new Image();
+      im.onload = async () => {
+        const ratio = aspectRatio(im.naturalWidth, im.naturalHeight);
+        try {
+          const url = await uploadToStorage(raw, f.type, Date.now() + '_' + f.name);
+          updatePath(path, url);
+          if (path !== 'infoSequence') setAspectOnPath(path, ratio);
+          saveContent(); uploadPath = null;
+          if (path === 'infoSequence') { renderInfoOverlay(); } else { render(); }
+        } catch(err) {
+          console.error('Supabase upload failed (PNG/GIF/SVG):', err);
+          alert('Image upload failed — check your internet connection and try again.\n\n' + err.message);
+          showSaveStatus('Upload failed ✗', '#fca5a5');
+          uploadPath = null;
+        }
+      };
+      im.src = raw;
+      return;
+    }
+
+    // Upload original file directly to Supabase — no compression, full quality
+    const im = new Image();
+    im.onload = async () => {
+      const ratio = aspectRatio(im.naturalWidth, im.naturalHeight);
+      try {
+        const url = await uploadToStorage(raw, f.type, Date.now() + '_' + f.name);
+        updatePath(path, url);
+        setAspectOnPath(path, ratio);
+        saveContent(); uploadPath = null; render();
+      } catch(err) {
+        console.error('Supabase upload failed:', err);
+        alert('Image upload failed — check your internet connection and try again.\n\n' + err.message);
+        showSaveStatus('Upload failed ✗', '#fca5a5');
+        uploadPath = null;
+      }
+    };
+    im.src = raw;
+  };
+  reader.readAsDataURL(f);
+}
+
+// ─── Password, Reset ──────────────────────────────────────────────────────────
+// Login form handler
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const val = document.getElementById('login-input').value;
+  const errEl = document.getElementById('login-error');
+  const hasPassword = !!(content.editPassword);
+
+  if (!hasPassword) {
+    // First-time setup: set password
+    const confirm = document.getElementById('login-confirm').value;
+    if (!val.trim()) { errEl.textContent = 'Please enter a password.'; errEl.style.display = 'block'; return; }
+    if (val !== confirm) { errEl.textContent = 'Passwords do not match.'; errEl.style.display = 'block'; return; }
+    content.editPassword = val.trim();
+    saveContent();
+    sessionStorage.setItem(EDIT_AUTH_KEY, val.trim());
+    navigate('#/');
+  } else {
+    if (val === content.editPassword) {
+      sessionStorage.setItem(EDIT_AUTH_KEY, val);
+      errEl.style.display = 'none';
+      navigate('#/');
+    } else {
+      const form = document.getElementById('login-form');
+      form.classList.remove('pw-shake'); void form.offsetWidth; form.classList.add('pw-shake');
+      setTimeout(() => form.classList.remove('pw-shake'), 400);
+      errEl.textContent = 'Incorrect password.';
+      errEl.style.display = 'block';
+      document.getElementById('login-input').value = '';
+      document.getElementById('login-input').focus();
+    }
+  }
+});
+
+function resetContent() {
+  if (confirm('Reset all content to defaults?')) { content = defaultContent(); saveContent(); render(); }
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+function init() {
+  const r = parseHash();
+  currentView = r.view;
+  currentProjectId = r.id;
+  render();
+  clockTimer = setInterval(updateClock, 1000);
+  setTimeout(updateClock, 50);
+  window.addEventListener('resize', () => { if (currentView === 'home') setCarouselAvail(); }, { passive: true });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && infoOpen) toggleInfo();
+  });
+}
+
+// ─── Loader ───────────────────────────────────────────────────────────────────
+let _loaderDone = false;
+let _loaderContent = null;
+
+function _finishLoader() {
+  if (!_loaderDone || !_loaderContent) return;
+  content = _loaderContent;
+  // Fix any project IDs that don't match their current title
+  let idsMigrated = false;
+  (content.projects || []).forEach(p => {
+    const correct = slugify(p.title);
+    if (correct && correct !== p.id) { p.id = correct; idsMigrated = true; }
+  });
+  if (idsMigrated) saveContent();
+  const loader = document.getElementById('page-loader');
+  // Sweep the loader up and away, revealing the site beneath
+  anime({
+    targets: loader,
+    translateY: [0, '-100%'],
+    duration: 680,
+    easing: 'cubicBezier(0.76,0,0.24,1)',
+    complete: () => { loader.style.display = 'none'; anime.set(loader, { translateY: 0 }); }
+  });
+  if (!checkAuth()) { /* pw-form submit calls init() */ } else { init(); }
+}
+
+function _startLoaderAnim() {
+  anime({
+    targets: '#loader-clip-rect',
+    width: [0, 308],
+    duration: 1100,
+    delay: 60,
+    easing: 'easeInOutQuart',
+    complete: () => { _loaderDone = true; setTimeout(_finishLoader, 220); }
+  });
+}
+
+// Apply saved theme instantly on load (no animation)
+(function(){ const t = localStorage.getItem('dae_theme') || 'light'; _applyThemeInstant(t); })();
+
+if (document.fonts) { document.fonts.ready.then(_startLoaderAnim); }
+else { setTimeout(_startLoaderAnim, 60); }
+
+loadContent().then(c => {
+  _loaderContent = c;
+  _finishLoader();
+});
+
+// Expose globals needed by inline event handlers
+window.toggleInfo = toggleInfo;
+window.toggleEdit = toggleEdit;
+window.logoutEdit = logoutEdit;
+window.changeEditPassword = changeEditPassword;
+window.setView = setView;
+window.navigate = navigate;
+window.addProject = addProject;
+window.addBlock = addBlock;
+window.resetContent = resetContent;
+window.triggerUpload = triggerUpload;
+window.onFile = onFile;
+window.handleProjNav = handleProjNav;
+</script>
+<div id="scroll-progress"></div>
+<div id="carousel-active-title"></div>
+<div id="sticky-bottom">
+  <span id="footer-copy"></span>
+  <span id="clock-el" style="font-variant-numeric:tabular-nums"></span>
+</div>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work List Component</title>
+<style>
+
+/* ─── Reset & base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.4;
+  background: #f7f7f5;
+  color: #1a1a18;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+
+/* ─── Work list ────────────────────────────────────────────────────────────── */
+.work-list {
+  width: 100%;
+  border-top: 1px solid #d8d5cd;
+}
+
+/* ─── Work item row ────────────────────────────────────────────────────────── */
+.work-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.35em;
+  padding: 0.65em 0;
+  border-bottom: 1px solid #d8d5cd;
+  cursor: pointer;
+  /* reserve right gutter for the floating client label */
+  padding-right: 14em;
+  transition: opacity 0.18s ease;
+}
+.work-item:hover { opacity: 0.75; }
+
+/* ─── Sentence fragments ───────────────────────────────────────────────────── */
+.work-item-before,
+.work-item-after {
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.work-item-after { flex-shrink: 1; }
+
+/* ─── Thumbnail — collapsed by default ────────────────────────────────────── */
+.work-item-image {
+  /* container expands first, then image unscales */
+  overflow: hidden;
+  flex-shrink: 0;
+  max-width: 0;
+  height: 1.6em;
+  border-radius: 3px;
+  image-rendering: pixelated;
+  transition: max-width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.work-item-image.in-viewport {
+  image-rendering: auto;
+}
+.work-item-image img {
+  display: block;
+  width: 73px;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  /* 0.25s delay so container expands before image unscales */
+  transition:
+    transform 0.22s cubic-bezier(0.4, 0, 0.2, 1) 0.25s,
+    opacity   0.45s cubic-bezier(0.19, 1, 0.22, 1);
+}
+.work-item-image.in-viewport img {
+  opacity: 1;
+}
+
+/* Expand on row hover */
+.work-item:hover .work-item-image {
+  max-width: 73px;
+}
+.work-item:hover .work-item-image img {
+  transform: scaleX(1);
+}
+.work-item:hover .work-item-image.in-viewport img {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+/* ─── Client label — floats right, outside the sentence ───────────────────── */
+.work-item-client {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #767570;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ─── Responsive: hide thumbnail mechanic below 1180px ────────────────────── */
+@media (max-width: 1179px) {
+  .work-item-image { display: none; }
+  .work-item { gap: 0.25em; }
+}
+
+/* ─── Responsive: stack to title + client below 844px ─────────────────────── */
+@media (max-width: 843px) {
+  .work-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2em;
+    padding-right: 0;
+  }
+  .work-item-before,
+  .work-item-after { white-space: normal; }
+  /* Rebuild title as a single block on mobile */
+  .work-item-before::after { content: ' ' attr(data-after); }
+  .work-item-after { display: none; }
+  .work-item-client {
+    position: static;
+    transform: none;
+    margin-top: 0.1em;
+  }
+}
+
+/* ─── Demo page chrome ─────────────────────────────────────────────────────── */
+.demo-wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px 160px;
+}
+h1 {
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #767570;
+  margin-bottom: 40px;
+}
+
+</style>
+</head>
+<body>
+
+<div class="demo-wrap">
+  <h1>Selected Work</h1>
+
+  <ul class="work-list" role="list">
+
+    <li class="work-item">
+      <a href="#" class="work-item-link" aria-label="View project: Life Needs A Biscuit"></a>
+      <span class="work-item-before" data-after="A Biscuit">Life Needs</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">A Biscuit</span>
+      <span class="work-item-client">Arnott's</span>
+    </li>
+
+    <li class="work-item">
+      <span class="work-item-before" data-after="In The Quiet">Finding Peace</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">In The Quiet</span>
+      <span class="work-item-client">Patagonia</span>
+    </li>
+
+    <li class="work-item">
+      <span class="work-item-before" data-after="To Perform">Rebranding A Champion</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">To Perform</span>
+      <span class="work-item-client">Athletics Australia</span>
+    </li>
+
+    <li class="work-item">
+      <span class="work-item-before" data-after="Premium Results">Heritage Storytelling With</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">Premium Results</span>
+      <span class="work-item-client">Penfolds</span>
+    </li>
+
+    <li class="work-item">
+      <span class="work-item-before" data-after="A Million Miles Away">30 Minutes And</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">A Million Miles Away</span>
+      <span class="work-item-client">Tourism WA</span>
+    </li>
+
+    <li class="work-item">
+      <span class="work-item-before" data-after="Beachfront Living">Elevating Premium</span>
+      <div class="work-item-image">
+        <img
+          src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=146&q=20"
+          data-src="https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=146&q=80"
+          alt=""
+          loading="lazy"
+        >
+      </div>
+      <span class="work-item-after">Beachfront Living</span>
+      <span class="work-item-client">Cottesloe</span>
+    </li>
+
+  </ul>
+</div>
+
+<script>
+/* ===== Pixelated load-in for off-screen thumbnails ===== */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const images = document.querySelectorAll('.work-item-image img');
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        const wrapper = entry.target.closest('.work-item-image');
+        const img = entry.target;
+
+        // Swap low-res placeholder for full-res source
+        const hires = img.dataset.src;
+        if (hires && img.src !== hires) {
+          const hi = new Image();
+          hi.onload = () => {
+            img.src = hires;
+            wrapper.classList.add('in-viewport');
+          };
+          hi.src = hires;
+        } else {
+          wrapper.classList.add('in-viewport');
+        }
+
+        observer.unobserve(img);
+      });
+    },
+    {
+      root: null,
+      rootMargin: '50px',
+      threshold: 0.1,
+    }
+  );
+
+  images.forEach((img) => observer.observe(img));
+});
+</script>
+</body>
+</html>
