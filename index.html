@@ -1464,9 +1464,9 @@ function renderGrid(projects) {
 
     const FRICTION  = 0.92;
     const MIN_VEL   = 0.15;
-    const MAX_SKEW  = 5;     // deg skew on the box at peak velocity
-    const MAX_STRETCH = 0.18; // how much the img stretches beyond its box (scaleX)
-    const VEL_SCALE = 40;    // velocity at which max effect is reached
+    const MAX_SKEW  = 7;     // deg skew on the box at peak velocity
+    const MAX_STRETCH = 0.12; // how much the img stretches beyond its box (scaleX)
+    const VEL_SCALE = 18;    // velocity at which max effect is reached
 
     // Cache boxes after clones are appended — set after initPos
     let _fxBoxes = null;
@@ -1484,15 +1484,10 @@ function renderGrid(projects) {
       const originX  = dir > 0 ? '0%' : '100%';
       const active   = t > 0.01;
       _fxActive = active;
-      if (!_fxBoxes) _fxBoxes = Array.from(grid.querySelectorAll('.c-img-box'));
-      _fxBoxes.forEach(box => {
-        box.style.transform  = active ? `skewX(${skew}deg)` : '';
-        box.style.willChange = active ? 'transform' : '';
-        const img = box.querySelector('.c-img');
-        if (img) {
-          img.style.transformOrigin = active ? `${originX} center` : '';
-          img.style.transform = active ? `scaleX(${imgScale})` : '';
-        }
+      if (!_fxBoxes) _fxBoxes = Array.from(grid.querySelectorAll('.carousel-card'));
+      _fxBoxes.forEach(card => {
+        card.style.transform  = active ? `skewX(${skew}deg)` : '';
+        card.style.willChange = active ? 'transform' : '';
       });
     };
 
@@ -1587,6 +1582,7 @@ function renderGrid(projects) {
       }
       grid.scrollLeft = pos;
       lastX = e.clientX;
+      if (!isMobile) applyMotionFx(dx);
     };
     const onMouseUp = () => {
       if (!isDragging) return;
