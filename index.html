@@ -1488,21 +1488,19 @@ function renderGrid(projects) {
     const activeTitleEl = document.getElementById('carousel-active-title');
 
     // ── Skew effect ────────────────────────────────────────────────────────────
-    let _fxCards = null;
     let _fxActive = false;
     const applyMotionFx = (v) => {
       if (isMobile) return;
       if (autoScroll && Math.abs(v - AUTO_VEL) < 0.1) {
-        if (_fxActive) { _fxActive = false; (_fxCards || []).forEach(c => { c.style.transform = ''; c.style.willChange = ''; }); }
+        if (_fxActive) { _fxActive = false; grid.querySelectorAll('.carousel-card').forEach(c => { c.style.transform = ''; c.style.willChange = ''; }); }
         return;
       }
       const t = Math.min(Math.abs(v) / VEL_SCALE, 1);
       const active = t > 0.01;
       if (!active && !_fxActive) return;
       _fxActive = active;
-      if (!_fxCards) _fxCards = Array.from(grid.querySelectorAll('.carousel-card'));
       const skew = active ? (t * MAX_SKEW * Math.sign(v)).toFixed(2) : 0;
-      _fxCards.forEach(c => {
+      grid.querySelectorAll('.carousel-card').forEach(c => {
         c.style.transform  = active ? `skewX(${skew}deg)` : '';
         c.style.willChange = active ? 'transform' : '';
       });
