@@ -2003,6 +2003,7 @@ function renderProject() {
       vid.setAttribute('loop', '');
       vid.setAttribute('muted', '');
       vid.setAttribute('playsinline', '');
+      vid.muted = true;
       vid.setAttribute('preload', 'auto');
       vid.style.cssText = `width:100%;display:block;aspect-ratio:${b.aspect||'16/9'};object-fit:cover;background-color:var(--paper-deep)`;
       if (b.src) {
