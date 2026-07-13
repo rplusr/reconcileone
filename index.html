@@ -1501,6 +1501,7 @@ function renderGrid(projects) {
       _fxActive = active;
       const skew = active ? (t * MAX_SKEW * Math.sign(v)).toFixed(2) : 0;
       grid.querySelectorAll('.carousel-card').forEach(c => {
+        if (c.style.animation) { c.style.animation = ''; c.style.opacity = '1'; }
         c.style.transform  = active ? `skewX(${skew}deg)` : '';
         c.style.willChange = active ? 'transform' : '';
       });
