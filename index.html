@@ -74,8 +74,10 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   margin-right:calc(-1 * var(--page-margin));
   overflow-x:clip;
   overflow-y:visible;
-  cursor:ew-resize;
+  cursor:grab;
   touch-action:pan-y;
+  user-select:none;
+  -webkit-user-select:none;
   /* fill exactly the space between work-bar and sticky-bottom, then centre strip */
   display:flex;
   flex-direction:column;
@@ -1316,7 +1318,16 @@ function renderGrid(projects) {
       img.alt = p.title || '';
       img.decoding = 'async';
       img.draggable = false;
-      // Set initial width from stored aspect, correct from natural dims on load
+      // Set width from stored aspect so getSetWidth() works before images load
+      const initAspect = parseAspect(p.aspect);
+      imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
+      img.onload = () => {
+        if (!img.naturalWidth || !img.naturalHeight) return;
+        const r = (img.naturalWidth / img.naturalHeight).toFixed(4);
+        const w = `calc(${baseH} * ${hMult.toFixed(4)} * ${r})`;
+        imgBox.style.width = w;
+        grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-img-box`).forEach(b => { b.style.width = w; });
+      };
       imgBox.appendChild(img);
     } else {
       // No image: use stored aspect for placeholder sizing
@@ -1462,111 +1473,110 @@ function renderGrid(projects) {
       });
     }); });
 
-    const FRICTION  = 0.92;
-    const MIN_VEL   = 0.15;
-    const MAX_SKEW  = 7;     // deg skew on the box at peak velocity
-    const MAX_STRETCH = 0.12; // how much the img stretches beyond its box (scaleX)
-    const VEL_SCALE = 18;    // velocity at which max effect is reached
-
-    // Cache boxes after clones are appended — set after initPos
-    let _fxBoxes = null;
-    let _fxActive = false;
-    const applyMotionFx = (v) => {
-      // During steady auto-scroll the effect would be constant — skip entirely
-      if (autoScroll && Math.abs(v - AUTO_VEL) < 0.08) {
-        if (_fxActive) { applyMotionFx(0); } // ensure cleared on transition to steady
-        return;
-      }
-      const t    = Math.min(Math.abs(v) / VEL_SCALE, 1);
-      const dir  = Math.sign(v);
-      const skew = (t * MAX_SKEW * dir).toFixed(3);
-      const imgScale = (1 + t * MAX_STRETCH).toFixed(4);
-      const originX  = dir > 0 ? '0%' : '100%';
-      const active   = t > 0.01;
-      _fxActive = active;
-      if (!_fxBoxes) _fxBoxes = Array.from(grid.querySelectorAll('.carousel-card'));
-      _fxBoxes.forEach(card => {
-        card.style.transform  = active ? `skewX(${skew}deg)` : '';
-        card.style.willChange = active ? 'transform' : '';
-      });
-    };
-
-    const AUTO_VEL  = 0.7;   // target auto-scroll speed (px/frame)
+    const FRICTION   = 0.92;
+    const MIN_VEL    = 0.12;
+    const MAX_SKEW   = 6;
+    const VEL_SCALE  = 14;
+    const AUTO_VEL   = 0.6;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let autoScroll  = false;
-    let idleTimer   = null;
-    let isHovered   = false;
 
-    const resetIdle = () => {
-      autoScroll = false;
-      clearTimeout(idleTimer);
-      if (!reducedMotion && !isHovered) idleTimer = setTimeout(() => { autoScroll = true; if (!rafId) rafId = requestAnimationFrame(tick); }, 1500);
-    };
+    let autoScroll = false;
+    let idleTimer  = null;
+    let isHovered  = false;
 
     const isMobile = window.matchMedia('(max-width:768px)').matches;
     const activeTitleEl = document.getElementById('carousel-active-title');
 
-    const updateMobileTitle = () => {
-      if (!isMobile) return;
-      const cards = grid.querySelectorAll('.carousel-card');
-      const wRect = wrap.getBoundingClientRect();
-      const wCx = wRect.left + wRect.width / 2;
-      let closestCard = null, closestDist = Infinity;
-      cards.forEach(card => {
-        const rect = card.getBoundingClientRect();
-        const dist = Math.abs((rect.left + rect.width / 2) - wCx);
-        if (dist < closestDist) { closestDist = dist; closestCard = card; }
+    // ── Skew effect ────────────────────────────────────────────────────────────
+    let _fxCards = null;
+    let _fxActive = false;
+    const applyMotionFx = (v) => {
+      if (isMobile) return;
+      if (autoScroll && Math.abs(v - AUTO_VEL) < 0.1) {
+        if (_fxActive) { _fxActive = false; (_fxCards || []).forEach(c => { c.style.transform = ''; c.style.willChange = ''; }); }
+        return;
+      }
+      const t = Math.min(Math.abs(v) / VEL_SCALE, 1);
+      const active = t > 0.01;
+      if (!active && !_fxActive) return;
+      _fxActive = active;
+      if (!_fxCards) _fxCards = Array.from(grid.querySelectorAll('.carousel-card'));
+      const skew = active ? (t * MAX_SKEW * Math.sign(v)).toFixed(2) : 0;
+      _fxCards.forEach(c => {
+        c.style.transform  = active ? `skewX(${skew}deg)` : '';
+        c.style.willChange = active ? 'transform' : '';
       });
-      if (closestCard) {
-        const title = closestCard.dataset.pid && projects.find(p => p.id === closestCard.dataset.pid)?.title;
-        if (title && activeTitleEl.textContent !== title) {
-          activeTitleEl.textContent = title;
-          activeTitleEl.classList.add('visible');
+    };
+
+    // ── Mobile title ───────────────────────────────────────────────────────────
+    let _titleRaf = null;
+    const updateMobileTitle = () => {
+      if (!isMobile || !activeTitleEl) return;
+      if (_titleRaf) return;
+      _titleRaf = requestAnimationFrame(() => {
+        _titleRaf = null;
+        const cards = grid.querySelectorAll('.carousel-card');
+        const wCx = wrap.getBoundingClientRect().left + wrap.offsetWidth / 2;
+        let best = null, bestD = Infinity;
+        cards.forEach(c => {
+          const r = c.getBoundingClientRect();
+          const d = Math.abs((r.left + r.width / 2) - wCx);
+          if (d < bestD) { bestD = d; best = c; }
+        });
+        if (best) {
+          const t = best.dataset.pid && projects.find(p => p.id === best.dataset.pid)?.title;
+          if (t) { activeTitleEl.textContent = t; activeTitleEl.classList.add('visible'); }
         }
+      });
+    };
+
+    // ── Idle / auto-scroll ─────────────────────────────────────────────────────
+    const resetIdle = () => {
+      autoScroll = false;
+      clearTimeout(idleTimer);
+      if (!reducedMotion && !isHovered && !isMobile) {
+        idleTimer = setTimeout(() => { autoScroll = true; if (!rafId) rafId = requestAnimationFrame(tick); }, 2000);
       }
     };
 
+    // ── Tick loop ──────────────────────────────────────────────────────────────
     const tick = () => {
       if (autoScroll) {
-        // Ease velocity toward AUTO_VEL
-        vel += (AUTO_VEL - vel) * 0.04;
+        vel += (AUTO_VEL - vel) * 0.05;
       } else if (Math.abs(vel) < MIN_VEL) {
         vel = 0;
-        if (!isMobile) applyMotionFx(0);
+        applyMotionFx(0);
         updateMobileTitle();
         rafId = null;
         return;
       }
-      vel *= autoScroll ? 1 : FRICTION;
+      if (!autoScroll) vel *= FRICTION;
       pos += vel;
-      // Seamless wrap
       if (setW > 0) {
         if (pos >= setW * 2) pos -= setW;
         if (pos < setW)      pos += setW;
       }
-      grid.scrollLeft = pos;
-      if (!isMobile) applyMotionFx(vel);
+      grid.scrollLeft = Math.round(pos);
+      applyMotionFx(vel);
       updateMobileTitle();
       rafId = requestAnimationFrame(tick);
     };
 
     const addVel = (delta) => {
       resetIdle();
-      vel += delta * 0.8;   // wheel sensitivity
+      vel += delta * 0.7;
       if (!rafId) rafId = requestAnimationFrame(tick);
     };
 
-    // Start idle timer immediately after layout
-    requestAnimationFrame(() => requestAnimationFrame(resetIdle));
-
-    // Wheel → velocity
-    const onWheel = (e) => { e.preventDefault(); addVel(e.deltaY + e.deltaX); };
-
-    // Drag → velocity
-    let isDragging = false, dragX = 0, lastX = 0, dragVel = 0;
+    // ── Mouse drag ─────────────────────────────────────────────────────────────
+    let isDragging = false, lastX = 0;
+    const _dragHistory = [];
     const onMouseDown = (e) => {
+      if (e.button !== 0) return;
       resetIdle();
-      isDragging = true; dragX = e.clientX; lastX = e.clientX; dragVel = 0;
+      isDragging = true;
+      lastX = e.clientX;
+      _dragHistory.length = 0;
       vel = 0;
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
       wrap.style.cursor = 'grabbing';
@@ -1574,72 +1584,75 @@ function renderGrid(projects) {
     const onMouseMove = (e) => {
       if (!isDragging) return;
       const dx = lastX - e.clientX;
-      dragVel = dx;
+      lastX = e.clientX;
+      _dragHistory.push({ dx, t: performance.now() });
+      if (_dragHistory.length > 8) _dragHistory.shift();
       pos += dx;
       if (setW > 0) {
         if (pos >= setW * 2) pos -= setW;
         if (pos < setW)      pos += setW;
       }
-      grid.scrollLeft = pos;
-      lastX = e.clientX;
-      if (!isMobile) applyMotionFx(dx);
+      grid.scrollLeft = Math.round(pos);
+      applyMotionFx(dx);
     };
     const onMouseUp = () => {
       if (!isDragging) return;
       isDragging = false;
       wrap.style.cursor = '';
-      vel = dragVel * 2.5;  // fling: carry drag momentum
+      const now = performance.now();
+      const recent = _dragHistory.filter(h => now - h.t < 100);
+      const avg = recent.length ? recent.reduce((s, h) => s + h.dx, 0) / recent.length : 0;
+      vel = avg * 2.8;
       if (!rafId) rafId = requestAnimationFrame(tick);
+      resetIdle();
     };
 
-    // Touch support — with velocity history for natural fling
-    let touchX = 0, touchY = 0, touchVel = 0, touchLocked = false;
-    const _tvHistory = []; // [{dx, t}] rolling window for fling
+    // ── Touch ──────────────────────────────────────────────────────────────────
+    let touchStartX = 0, touchStartY = 0, touchLastX = 0, touchAxis = null;
+    const _touchHistory = [];
     const onTouchStart = (e) => {
-      resetIdle();
-      touchX = e.touches[0].clientX;
-      touchY = e.touches[0].clientY;
-      touchVel = 0; touchLocked = false;
-      _tvHistory.length = 0;
+      touchStartX = touchLastX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchAxis = null;
+      _touchHistory.length = 0;
       vel = 0;
       if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     };
     const onTouchMove = (e) => {
       const tx = e.touches[0].clientX;
       const ty = e.touches[0].clientY;
-      const dx = touchX - tx;
-      const dy = touchY - ty;
-      // Lock axis on first significant move
-      if (!touchLocked) {
-        if (Math.abs(dx) > Math.abs(dy) + 4) { touchLocked = 'h'; }
-        else if (Math.abs(dy) > Math.abs(dx) + 4) { touchLocked = 'v'; }
-        else return;
+      if (!touchAxis) {
+        const adx = Math.abs(tx - touchStartX);
+        const ady = Math.abs(ty - touchStartY);
+        if (adx < 3 && ady < 3) return; // wait for clear movement
+        touchAxis = adx >= ady ? 'h' : 'v';
       }
-      if (touchLocked === 'v') return;
+      if (touchAxis === 'v') return;
       e.preventDefault();
-      const now = performance.now();
-      _tvHistory.push({ dx, t: now });
-      if (_tvHistory.length > 6) _tvHistory.shift();
-      touchVel = dx;
+      const dx = touchLastX - tx;
+      touchLastX = tx;
+      _touchHistory.push({ dx, t: performance.now() });
+      if (_touchHistory.length > 8) _touchHistory.shift();
       pos += dx;
       if (setW > 0) {
         if (pos >= setW * 2) pos -= setW;
-        if (pos < setW) pos += setW;
+        if (pos < setW)      pos += setW;
       }
-      grid.scrollLeft = pos;
-      touchX = tx; touchY = ty;
+      grid.scrollLeft = Math.round(pos);
       updateMobileTitle();
     };
     const onTouchEnd = () => {
-      // Compute fling from recent history
+      if (touchAxis !== 'h') return;
       const now = performance.now();
-      const recent = _tvHistory.filter(h => now - h.t < 80);
-      const fling = recent.length ? recent.reduce((s, h) => s + h.dx, 0) / recent.length : touchVel;
-      vel = fling * 2.2;
-      if (!rafId) rafId = requestAnimationFrame(tick);
+      const recent = _touchHistory.filter(h => now - h.t < 80);
+      const avg = recent.length ? recent.reduce((s, h) => s + h.dx, 0) / recent.length : 0;
+      vel = avg * 2.4;
+      if (Math.abs(vel) > MIN_VEL && !rafId) rafId = requestAnimationFrame(tick);
     };
 
-    // Cleanup previous handlers (including leaked rAF loop)
+    // ── Event wiring ───────────────────────────────────────────────────────────
+    const onWheel = (e) => { e.preventDefault(); addVel(e.deltaY + e.deltaX); };
+
     if (grid._carouselHandlers) {
       const h = grid._carouselHandlers;
       wrap.removeEventListener('wheel', h.wheel, { passive: false });
@@ -1653,15 +1666,18 @@ function renderGrid(projects) {
     }
     const stop = () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } clearTimeout(idleTimer); autoScroll = false; };
     grid._carouselHandlers = { wheel: onWheel, mousedown: onMouseDown, mousemove: onMouseMove, mouseup: onMouseUp, touchstart: onTouchStart, touchmove: onTouchMove, touchend: onTouchEnd, stop };
+
     wrap.addEventListener('wheel', onWheel, { passive: false });
     wrap.addEventListener('mousedown', onMouseDown);
-    wrap.addEventListener('mouseenter', () => { isHovered = true; autoScroll = false; clearTimeout(idleTimer); vel = 0; });
+    wrap.addEventListener('mouseenter', () => { isHovered = true; autoScroll = false; clearTimeout(idleTimer); });
     wrap.addEventListener('mouseleave', () => { isHovered = false; if (!isDragging) resetIdle(); });
     wrap.addEventListener('touchstart', onTouchStart, { passive: true });
     wrap.addEventListener('touchmove', onTouchMove, { passive: false });
     wrap.addEventListener('touchend', onTouchEnd, { passive: true });
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+
+    requestAnimationFrame(() => requestAnimationFrame(resetIdle));
   } else {
     // Edit mode: clean up any previous carousel physics handlers, use natural scroll
     if (grid._carouselHandlers) {
