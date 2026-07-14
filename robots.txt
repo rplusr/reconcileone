@@ -39,4 +39,4 @@ Disallow: /
 User-agent: Google-Extended
 Allow: /
 
-Sitemap: https://danelliott.co/sitemap.xml
+Sitemap: https://danielsans.net/sitemap.xml
