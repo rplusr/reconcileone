@@ -202,6 +202,24 @@ body[data-edit="true"] .carousel-card{cursor:default}
   opacity:1;
   transform:translateY(0)
 }
+#carousel-active-sub{
+  position:fixed;
+  bottom:90px;
+  left:var(--page-margin);
+  right:var(--page-margin);
+  font-size:var(--fs-small);
+  font-weight:400;
+  letter-spacing:-0.01em;
+  color:var(--ink-muted);
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.28s ease;
+  z-index:10;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+#carousel-active-sub.visible{opacity:1}
 
 /* Edit-mode masonry grid cards */
 .grid-card{
@@ -1376,8 +1394,18 @@ function renderGrid(projects) {
 
     if (!editMode) {
       const _titleEl = document.getElementById('carousel-active-title');
-      card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); });
-      card.addEventListener('mouseleave', () => _titleEl.classList.remove('visible'));
+      const _subEl = document.getElementById('carousel-active-sub');
+      card.addEventListener('mouseenter', () => {
+        _titleEl.textContent = p.title || '';
+        _titleEl.classList.add('visible');
+        const sub = [p.descriptor, p.role].filter(Boolean).join(' · ');
+        _subEl.textContent = sub;
+        if (sub) _subEl.classList.add('visible');
+      });
+      card.addEventListener('mouseleave', () => {
+        _titleEl.classList.remove('visible');
+        _subEl.classList.remove('visible');
+      });
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', p.title || 'View project');
@@ -1435,8 +1463,18 @@ function renderGrid(projects) {
       const proj = projects.find(p => p.id === pid);
       if (proj) {
         const activeTitleEl = document.getElementById('carousel-active-title');
-        cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); });
-        cl.addEventListener('mouseleave', () => activeTitleEl.classList.remove('visible'));
+        const activeSubEl = document.getElementById('carousel-active-sub');
+        cl.addEventListener('mouseenter', () => {
+          activeTitleEl.textContent = proj.title || '';
+          activeTitleEl.classList.add('visible');
+          const sub = [proj.descriptor, proj.role].filter(Boolean).join(' · ');
+          activeSubEl.textContent = sub;
+          if (sub) activeSubEl.classList.add('visible');
+        });
+        cl.addEventListener('mouseleave', () => {
+          activeTitleEl.classList.remove('visible');
+          activeSubEl.classList.remove('visible');
+        });
         cl.addEventListener('click', () => navigate('#/project/' + proj.id));
       }
       return cl;
@@ -2692,6 +2730,7 @@ window.handleProjNav = handleProjNav;
 </script>
 <div id="scroll-progress"></div>
 <div id="carousel-active-title"></div>
+<div id="carousel-active-sub"></div>
 <div id="sticky-bottom">
   <span id="footer-copy"></span>
   <span id="clock-el" style="font-variant-numeric:tabular-nums"></span>
