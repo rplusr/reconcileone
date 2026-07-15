@@ -103,6 +103,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   gap:12px;
   perspective:1400px;
   perspective-origin:50% 50%;
+  padding-bottom:52px;
+  margin-bottom:-52px;
   /* base strip height — cards are sized relative to this */
   height:clamp(260px,44vh,540px);
   overflow-x:scroll;
@@ -137,13 +139,22 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   height:100%;
   width:auto
 }
+/* Extend card hover zone to cover labels below */
+.carousel-card::after{
+  content:'';
+  position:absolute;
+  inset:0 0 -52px 0;
+  pointer-events:auto
+}
 /* Labels — absolutely positioned below imgBox so they don't affect card flex height */
 .carousel-card .c-labels{
   position:absolute;
   top:100%;
   left:0;
   width:100%;
-  padding-top:8px
+  padding-top:8px;
+  pointer-events:none;
+  z-index:2
 }
 .carousel-card .c-title{
   display:block;
