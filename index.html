@@ -139,53 +139,40 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   height:100%;
   width:auto
 }
-/* Extend card hover zone to cover labels below */
-.carousel-card::after{
-  content:'';
-  position:absolute;
-  inset:0 0 -52px 0;
-  pointer-events:auto
-}
-/* Labels — absolutely positioned below imgBox so they don't affect card flex height */
+/* Labels — overlaid at the bottom of the image */
 .carousel-card .c-labels{
   position:absolute;
-  top:100%;
+  bottom:0;
   left:0;
-  width:100%;
-  padding-top:8px;
+  right:0;
+  padding:24px 0 8px;
+  background:linear-gradient(to top,rgba(0,0,0,0.45) 0%,transparent 100%);
+  opacity:0;
+  transition:opacity 0.28s ease;
   pointer-events:none;
   z-index:2
 }
+.carousel-card:hover .c-labels{opacity:1}
 .carousel-card .c-title{
   display:block;
   font-size:var(--fs-small);
   font-weight:400;
   letter-spacing:-0.01em;
-  color:var(--ink);
+  color:#fff;
   white-space:nowrap;
   overflow:hidden;
-  text-overflow:ellipsis;
-  opacity:0;
-  transform:translateY(4px);
-  transition:opacity 0.28s ease,transform 0.28s ease;
-  pointer-events:none
+  text-overflow:ellipsis
 }
-.carousel-card:hover .c-title{opacity:1;transform:translateY(0)}
 .carousel-card .c-cat{
   display:block;
   margin-top:2px;
   font-size:var(--fs-small);
   font-weight:400;
-  color:var(--ink-muted);
+  color:rgba(255,255,255,0.65);
   white-space:nowrap;
   overflow:hidden;
-  text-overflow:ellipsis;
-  opacity:0;
-  transform:translateY(4px);
-  transition:opacity 0.28s ease 0.04s,transform 0.28s ease 0.04s;
-  pointer-events:none
+  text-overflow:ellipsis
 }
-.carousel-card:hover .c-cat{opacity:1;transform:translateY(0)}
 /* Edit mode: keep labels visible and cat editable */
 body[data-edit="true"] .carousel-card .c-title{opacity:1;transform:none}
 body[data-edit="true"] .carousel-card .c-cat{opacity:1;transform:none;pointer-events:auto;border-bottom:1px dashed var(--line);outline:none;min-width:40px;cursor:text}
@@ -1385,7 +1372,7 @@ function renderGrid(projects) {
       catEl.addEventListener('click', e => e.stopPropagation());
     }
     labels.appendChild(catEl);
-    card.appendChild(labels);
+    imgBox.appendChild(labels);
 
     if (!editMode) {
       const _titleEl = document.getElementById('carousel-active-title');
