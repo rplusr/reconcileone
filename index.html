@@ -51,8 +51,6 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* Animations */
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes carouselSlideUp{from{opacity:0;transform:translateY(36px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 @keyframes t-digit-pop-in{0%{transform:translateY(6px);opacity:0;filter:blur(2px)}100%{transform:translateY(0);opacity:1;filter:blur(0)}}
@@ -1386,8 +1384,7 @@ function renderGrid(projects) {
       card.addEventListener('click', () => navigate('#/project/' + p.id));
       card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('#/project/' + p.id); } });
 
-      const delay = i * 70;
-      requestAnimationFrame(() => { setTimeout(() => { card.style.animation = `carouselSlideUp 0.65s cubic-bezier(0.22,1,0.36,1) ${delay}ms forwards`; }, 0); });
+      anime.set(card, { opacity: 0 });
     } else {
       // Reorder arrows top-left / top-right
       const arrows = document.createElement('div');
@@ -1449,6 +1446,24 @@ function renderGrid(projects) {
     const after  = copySet();
     before.reverse().forEach(c => grid.insertBefore(c, grid.firstChild));
     after.forEach(c => grid.appendChild(c));
+
+    // Staggered entrance — swing in from center outward
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      requestAnimationFrame(() => {
+        anime({
+          targets: origCards,
+          opacity: [0, 1],
+          translateY: [20, 0],
+          rotate: [-1.5, 0],
+          duration: 700,
+          easing: 'cubicBezier(0.22,1,0.36,1)',
+          delay: anime.stagger(55, { from: 'center' }),
+          begin: () => origCards.forEach(c => { c.style.opacity = '0'; })
+        });
+      });
+    } else {
+      origCards.forEach(c => { c.style.opacity = '1'; });
+    }
 
     // Measure one "set" width after DOM is laid out
     const getSetWidth = () => {
@@ -1741,7 +1756,7 @@ function renderList(projects) {
       const [before, after] = splitTitle(p.descriptor || p.title);
       const li = document.createElement('li');
       li.className = 'work-item';
-      if (animateCards) li.style.animation = `fadeUp 0.4s ease ${i * 40}ms both`;
+      anime.set(li, { opacity: 0 });
       li.dataset.pid = p.id;
       li.addEventListener('click', () => navigate('#/project/' + p.id));
 
@@ -1780,6 +1795,22 @@ function renderList(projects) {
     });
 
     list.appendChild(ul);
+
+    if (animateCards && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      requestAnimationFrame(() => {
+        anime({
+          targets: ul.querySelectorAll('.work-item'),
+          opacity: [0, 1],
+          translateY: [14, 0],
+          rotate: [-1.5, 0],
+          duration: 600,
+          easing: 'cubicBezier(0.22,1,0.36,1)',
+          delay: anime.stagger(45, { from: 'center' })
+        });
+      });
+    } else {
+      ul.querySelectorAll('.work-item').forEach(el => { el.style.opacity = '1'; });
+    }
     return;
   }
 
@@ -1971,7 +2002,7 @@ function renderProject() {
 
   (proj.blocks || []).forEach((b, bi) => {
     const wrap = document.createElement('div');
-    wrap.style.cssText = `grid-column:span ${b.span};position:relative;${animateCards?'animation:fadeUp 0.5s ease '+((bi+1)*70)+'ms both':''}`;
+    wrap.style.cssText = `grid-column:span ${b.span};position:relative`;
     wrap.dataset.bid = b.id;
 
     if (editMode) {
@@ -2081,6 +2112,25 @@ function renderProject() {
     }
     blocksEl.appendChild(wrap);
   });
+
+  // Staggered entrance for project blocks
+  if (animateCards && !editMode && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const blocks = Array.from(blocksEl.children);
+    anime.set(blocks, { opacity: 0 });
+    requestAnimationFrame(() => {
+      anime({
+        targets: blocks,
+        opacity: [0, 1],
+        translateY: [16, 0],
+        rotate: [-1.5, 0],
+        duration: 650,
+        easing: 'cubicBezier(0.22,1,0.36,1)',
+        delay: anime.stagger(50, { from: 'center' })
+      });
+    });
+  } else if (!editMode) {
+    Array.from(blocksEl.children).forEach(el => { el.style.opacity = '1'; });
+  }
 
   // Fade + unblur on load for project block images
   if (!editMode) {
