@@ -133,7 +133,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .carousel-card .c-img{
   display:block;
   height:100%;
-  width:auto
+  width:auto;
+  filter:url(#c-distort)
 }
 /* Labels — absolutely positioned below imgBox so they don't affect card flex height */
 .carousel-card .c-labels{
@@ -438,6 +439,14 @@ body[data-edit="true"] .carousel-card{cursor:default}
 </style>
 </head>
 <body>
+<svg id="carousel-svg-filters" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <filter id="c-distort" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence id="c-turb" type="turbulence" baseFrequency="0.007 0.028" numOctaves="2" seed="3" result="noise"/>
+      <feDisplacementMap id="c-disp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
 <!-- Password Gate -->
 <div id="pw-gate" style="display:none;position:fixed;inset:0;background:var(--paper);z-index:200;flex-direction:column;justify-content:center;align-items:center;gap:40px;animation:fadeIn .2s ease both">
@@ -1517,22 +1526,39 @@ function renderGrid(projects) {
 
     // ── Skew effect ────────────────────────────────────────────────────────────
     let _fxActive = false;
+    const _cDisp = document.getElementById('c-disp');
+    const _cTurb = document.getElementById('c-turb');
     const applyMotionFx = (v) => {
       if (isMobile) return;
       if (autoScroll && Math.abs(v - AUTO_VEL) < 0.1) {
-        if (_fxActive) { _fxActive = false; grid.querySelectorAll('.carousel-card').forEach(c => { c.style.transform = ''; c.style.willChange = ''; }); }
+        if (_fxActive) {
+          _fxActive = false;
+          grid.querySelectorAll('.carousel-card').forEach(c => { c.style.transform = ''; c.style.willChange = ''; });
+          if (_cDisp) _cDisp.setAttribute('scale', '0');
+        }
         return;
       }
       const t = Math.min(Math.abs(v) / VEL_SCALE, 1);
       const active = t > 0.01;
       if (!active && !_fxActive) return;
       _fxActive = active;
+
+      // Skew cards
       const skew = active ? (t * MAX_SKEW * Math.sign(v)).toFixed(2) : 0;
       grid.querySelectorAll('.carousel-card').forEach(c => {
         if (c.style.animation) { c.style.animation = ''; c.style.opacity = '1'; }
         c.style.transform  = active ? `skewX(${skew}deg)` : '';
         c.style.willChange = active ? 'transform' : '';
       });
+
+      // WebGL-style image distortion via SVG displacement filter
+      if (_cDisp && _cTurb) {
+        const scale = active ? (t * 28).toFixed(1) : '0';
+        _cDisp.setAttribute('scale', scale);
+        // Shift turbulence frequency slightly with velocity for directional feel
+        const bfx = (0.007 + t * 0.006).toFixed(4);
+        _cTurb.setAttribute('baseFrequency', `${bfx} 0.028`);
+      }
     };
 
     // ── Mobile title ───────────────────────────────────────────────────────────
