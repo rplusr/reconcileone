@@ -1329,19 +1329,25 @@ function renderGrid(projects) {
       img.draggable = false;
       // Set width from stored aspect so getSetWidth() works before images load
       const initAspect = parseAspect(p.aspect);
-      imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
+      const initW = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
+      imgBox.style.width = initW;
+      labels.style.width = initW;
       img.onload = () => {
         if (!img.naturalWidth || !img.naturalHeight) return;
         const r = (img.naturalWidth / img.naturalHeight).toFixed(4);
         const w = `calc(${baseH} * ${hMult.toFixed(4)} * ${r})`;
         imgBox.style.width = w;
+        labels.style.width = w;
         grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-img-box`).forEach(b => { b.style.width = w; });
+        grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-labels`).forEach(b => { b.style.width = w; });
       };
       imgBox.appendChild(img);
     } else {
       // No image: use stored aspect for placeholder sizing
       const fallbackAspect = parseAspect(p.aspect);
-      imgBox.style.width = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
+      const fallbackW = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
+      imgBox.style.width = fallbackW;
+      labels.style.width = fallbackW;
       imgBox.style.background = 'var(--paper-deep)';
     }
     card.appendChild(imgBox);
