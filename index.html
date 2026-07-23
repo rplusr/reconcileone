@@ -1320,6 +1320,7 @@ function renderGrid(projects) {
     imgBox.className = 'c-img-box';
     imgBox.style.height = boxH;
 
+    let _cardW = '';
     if (p.image) {
       const img = document.createElement('img');
       img.className = 'c-img';
@@ -1327,33 +1328,28 @@ function renderGrid(projects) {
       img.alt = p.title || '';
       img.decoding = 'async';
       img.draggable = false;
-      // Set width from stored aspect so getSetWidth() works before images load
       const initAspect = parseAspect(p.aspect);
-      const initW = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
-      imgBox.style.width = initW;
-      labels.style.width = initW;
+      _cardW = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
+      imgBox.style.width = _cardW;
       img.onload = () => {
         if (!img.naturalWidth || !img.naturalHeight) return;
-        const r = (img.naturalWidth / img.naturalHeight).toFixed(4);
-        const w = `calc(${baseH} * ${hMult.toFixed(4)} * ${r})`;
+        const w = `calc(${baseH} * ${hMult.toFixed(4)} * ${(img.naturalWidth / img.naturalHeight).toFixed(4)})`;
         imgBox.style.width = w;
-        labels.style.width = w;
         grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-img-box`).forEach(b => { b.style.width = w; });
         grid.querySelectorAll(`.carousel-card[data-pid="${p.id}"] .c-labels`).forEach(b => { b.style.width = w; });
       };
       imgBox.appendChild(img);
     } else {
-      // No image: use stored aspect for placeholder sizing
       const fallbackAspect = parseAspect(p.aspect);
-      const fallbackW = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
-      imgBox.style.width = fallbackW;
-      labels.style.width = fallbackW;
+      _cardW = `calc(${baseH} * ${hMult.toFixed(4)} * ${fallbackAspect.toFixed(4)})`;
+      imgBox.style.width = _cardW;
       imgBox.style.background = 'var(--paper-deep)';
     }
     card.appendChild(imgBox);
 
     const labels = document.createElement('div');
     labels.className = 'c-labels';
+    labels.style.width = _cardW;
 
     const titleEl = document.createElement('div');
     titleEl.className = 'c-title';
