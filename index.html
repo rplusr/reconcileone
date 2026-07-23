@@ -255,10 +255,13 @@ body[data-edit="true"] .carousel-card{cursor:default}
   #carousel-active-title{font-size:clamp(1.5rem,7vw,2.5rem)!important;bottom:56px!important}
   /* Larger tap targets in nav */
   .nav-btn{padding:8px 12px!important}
-  /* Work intro row tighter on mobile */
-  #work-intro-row{padding:var(--space-4) 0 var(--space-5)!important}
-  /* Carousel gap tighter on mobile */
-  #home-grid.carousel-mode{gap:8px!important}
+  /* Hide intro paragraph on mobile — give carousel full vertical room */
+  #work-intro-row{display:none!important}
+  /* Carousel: shorter image strip + smaller label area on mobile */
+  #home-grid.carousel-mode{
+    gap:8px!important;
+    height:calc(clamp(200px,38vh,360px) + 40px)!important
+  }
   /* Info overlay full-width comfortable read */
   #info-overlay>div{padding:0 var(--page-margin)!important}
   /* Project title sizing */
@@ -1300,7 +1303,8 @@ function renderGrid(projects) {
   grid.style.gap = '';
 
   const heightMults = [1, 0.72, 0.88, 0.64, 1, 0.78];
-  const baseH = 'clamp(260px,44vh,540px)';
+  const isMobileLayout = window.matchMedia('(max-width:768px)').matches;
+  const baseH = isMobileLayout ? 'clamp(200px,38vh,360px)' : 'clamp(260px,44vh,540px)';
 
   projects.forEach((p, i) => {
     const card = document.createElement('div');
