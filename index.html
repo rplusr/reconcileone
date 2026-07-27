@@ -647,6 +647,9 @@ body[data-edit="true"] .carousel-card{cursor:default}
 const KEY = 'danelliott_cms_v2';
 const EDIT_AUTH_KEY = 'dae_edit_auth';
 const DB = 'https://danielsans-2b350-default-rtdb.asia-southeast1.firebasedatabase.app/content.json';
+// Set this to your Firebase Database Secret (Project settings → Service accounts → Database secrets)
+// Then set Firebase rules: { "rules": { ".read": true, ".write": "auth != null" } }
+const FIREBASE_SECRET = '';
 const SUPABASE_URL = 'https://uusuhjlvyjixaemmglbs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1c3Voamx2eWppeGFlbW1nbGJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTY0NTgsImV4cCI6MjA5Nzg3MjQ1OH0.GGI_x_W6Uk76GabycdXEuZvjh0U7imZsnM-jDxSirx0';
 const SUPABASE_BUCKET = 'portfolio-images';
@@ -746,8 +749,11 @@ async function loadContent() {
 
   if (localData) {
     normalizeAspects(localData);
-    fetch(DB, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(stripImages(localData)) })
-      .catch(() => {});
+    // Only push local cache to Firebase if a secret is configured
+    if (typeof FIREBASE_SECRET !== 'undefined' && FIREBASE_SECRET) {
+      fetch(DB + '?auth=' + encodeURIComponent(FIREBASE_SECRET), { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(stripImages(localData)) })
+        .catch(() => {});
+    }
     return localData;
   }
 
@@ -783,18 +789,23 @@ function showSaveStatus(msg, color) {
 }
 
 function saveContent() {
+  // Never write to Firebase unless edit-authenticated
+  if (!isEditAuthed()) {
+    console.warn('saveContent blocked: not edit-authenticated');
+    return;
+  }
   const serialized = JSON.stringify(content);
   try {
     localStorage.setItem(KEY, serialized);
   } catch(e) {
-    // localStorage quota exceeded — strip images and save metadata only
     try {
       const stripped = stripImages(content);
       localStorage.setItem(KEY, JSON.stringify(stripped));
     } catch(e2) { console.warn('localStorage full, skipping local save'); }
   }
   showSaveStatus('Saving…', 'rgba(255,255,255,0.6)');
-  fetch(DB, {
+  const secret = typeof FIREBASE_SECRET !== 'undefined' && FIREBASE_SECRET ? '?auth=' + encodeURIComponent(FIREBASE_SECRET) : '';
+  fetch(DB + secret, {
     method: 'PUT',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(stripImages(content))
