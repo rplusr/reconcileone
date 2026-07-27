@@ -282,31 +282,6 @@ body[data-edit="true"] .carousel-card{cursor:default}
 [data-theme="dark"] .nav-btn:hover{background:rgba(240,239,233,.08)}
 .work-nav-btn:hover{color:var(--ink)!important}
 .site-name:hover{text-decoration:underline;text-underline-offset:.3em;text-decoration-thickness:1px}
-#header-name{gap:0!important}
-#header-name::before{
-  content:'';
-  width:0;
-  height:7px;
-  border-radius:50%;
-  background:var(--ink);
-  flex:none;
-  align-self:center;
-  margin-bottom:1px;
-  margin-right:0;
-  opacity:0;
-  transition:width 0.32s cubic-bezier(0.34,1.56,0.64,1),margin-right 0.32s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease
-}
-#header-name:hover::before{width:7px;margin-right:7px;opacity:1}
-#header-name-text{
-  transition:transform 0.35s cubic-bezier(0.22,1,0.36,1)
-}
-#header-name:hover #header-name-text{
-  animation:name-slideback 0.4s cubic-bezier(0.22,1,0.36,1) 0.28s both
-}
-@keyframes name-slideback{
-  from{transform:translateX(0)}
-  to{transform:translateX(-14px)}
-}
 
 /* List row hover */
 .list-row-link:hover{opacity:.5!important}
@@ -1136,12 +1111,8 @@ function renderLoginView() {
 function renderHeader() {
   const el = document.getElementById('header-name');
   const dot = document.getElementById('nav-dot');
-  el.textContent = '';
-  if (dot) el.appendChild(dot);
-  const nameSpan = document.createElement('span');
-  nameSpan.id = 'header-name-text';
-  nameSpan.textContent = content.name;
-  el.appendChild(nameSpan);
+  el.textContent = content.name;
+  if (dot) el.prepend(dot);
   el.onclick = (e) => { e.preventDefault(); if (!editMode) navigate('#/'); };
 }
 
