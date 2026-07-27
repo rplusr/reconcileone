@@ -139,9 +139,27 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 }
 /* Labels — in-flow below each thumbnail, visible on hover */
 .carousel-card .c-labels{
+  position:relative;
   padding-top:8px;
-  flex-shrink:0
+  padding-left:0;
+  flex-shrink:0;
+  transition:padding-left 0.22s ease
 }
+.carousel-card .c-labels::before{
+  content:'';
+  position:absolute;
+  left:0;
+  top:calc(8px + 0.45em);
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--ink);
+  transform:scale(0);
+  opacity:0;
+  transition:transform 0.22s ease, opacity 0.22s ease
+}
+.carousel-card:hover .c-labels{padding-left:13px}
+.carousel-card:hover .c-labels::before{transform:scale(1);opacity:1}
 .carousel-card .c-title{
   display:block;
   font-size:var(--fs-small);
