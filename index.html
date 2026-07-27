@@ -282,6 +282,21 @@ body[data-edit="true"] .carousel-card{cursor:default}
 [data-theme="dark"] .nav-btn:hover{background:rgba(240,239,233,.08)}
 .work-nav-btn:hover{color:var(--ink)!important}
 .site-name:hover{text-decoration:underline;text-underline-offset:.3em;text-decoration-thickness:1px}
+#header-name{gap:0!important}
+#header-name::before{
+  content:'';
+  width:0;
+  height:7px;
+  border-radius:50%;
+  background:var(--ink);
+  flex:none;
+  align-self:center;
+  margin-bottom:1px;
+  margin-right:0;
+  opacity:0;
+  transition:width 0.32s cubic-bezier(0.34,1.56,0.64,1),margin-right 0.32s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease
+}
+#header-name:hover::before{width:7px;margin-right:7px;opacity:1}
 
 /* List row hover */
 .list-row-link:hover{opacity:.5!important}
