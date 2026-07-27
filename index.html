@@ -143,7 +143,6 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   flex-shrink:0
 }
 .carousel-card .c-title{
-  position:relative;
   display:block;
   font-size:var(--fs-small);
   font-weight:400;
@@ -152,25 +151,10 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  padding-left:0;
   opacity:0;
-  transition:opacity 0.22s ease, padding-left 0.22s ease
+  transition:opacity 0.22s ease
 }
-.carousel-card .c-title::before{
-  content:'';
-  position:absolute;
-  left:0;
-  top:50%;
-  transform:translateY(-50%) scale(0);
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:var(--ink);
-  opacity:0;
-  transition:transform 0.22s ease, opacity 0.22s ease
-}
-.carousel-card:hover .c-title{opacity:1;padding-left:13px}
-.carousel-card:hover .c-title::before{transform:translateY(-50%) scale(1);opacity:1}
+.carousel-card:hover .c-title{opacity:1}
 .carousel-card .c-cat{
   display:block;
   margin-top:2px;
