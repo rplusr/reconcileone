@@ -118,16 +118,6 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 }
 #home-grid.carousel-mode::-webkit-scrollbar{display:none}
 
-/* Hover-scale: dim other cards on desktop */
-@media(hover:hover){
-  #home-grid.carousel-mode .carousel-card{transform-origin:bottom center}
-  #home-grid.carousel-mode.has-hover .carousel-card{
-    transform:scale(0.82);
-    transition:transform 0.4s cubic-bezier(0.22,1,0.36,1)
-  }
-  #home-grid.carousel-mode.has-hover .carousel-card.is-hovered{transform:scale(1)}
-}
-
 /* Each card = image box + descriptor below */
 .carousel-card{
   position:relative;
@@ -1397,14 +1387,8 @@ function renderGrid(projects) {
 
     if (!editMode) {
       const _titleEl = document.getElementById('carousel-active-title');
-      card.addEventListener('mouseenter', () => {
-        _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible');
-        grid.classList.add('has-hover'); card.classList.add('is-hovered');
-      });
-      card.addEventListener('mouseleave', () => {
-        _titleEl.classList.remove('visible');
-        grid.classList.remove('has-hover'); card.classList.remove('is-hovered');
-      });
+      card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); });
+      card.addEventListener('mouseleave', () => _titleEl.classList.remove('visible'));
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', p.title || 'View project');
@@ -1462,14 +1446,8 @@ function renderGrid(projects) {
       const proj = projects.find(p => p.id === pid);
       if (proj) {
         const activeTitleEl = document.getElementById('carousel-active-title');
-        cl.addEventListener('mouseenter', () => {
-          activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible');
-          grid.classList.add('has-hover'); cl.classList.add('is-hovered');
-        });
-        cl.addEventListener('mouseleave', () => {
-          activeTitleEl.classList.remove('visible');
-          grid.classList.remove('has-hover'); cl.classList.remove('is-hovered');
-        });
+        cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); });
+        cl.addEventListener('mouseleave', () => activeTitleEl.classList.remove('visible'));
         cl.addEventListener('click', () => navigate('#/project/' + proj.id));
       }
       return cl;
@@ -1569,14 +1547,10 @@ function renderGrid(projects) {
 
       grid.querySelectorAll('.carousel-card').forEach(c => {
         if (c.style.animation) { c.style.animation = ''; c.style.opacity = '1'; }
-        if (!active) {
-          c.style.transform = ''; c.style.willChange = ''; c.style.transition = '';
-          return;
-        }
+        if (!active) { c.style.transform = ''; c.style.willChange = ''; return; }
         const cx   = c.offsetLeft + c.offsetWidth / 2 - pos;
         const norm = (cx - vpCx) / vpCx;
         const rotY = (norm * t * 10).toFixed(2);
-        c.style.transition = 'none';
         c.style.transform  = `skewX(${skew}deg) rotateY(${rotY}deg)`;
         c.style.willChange = 'transform';
       });
