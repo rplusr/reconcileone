@@ -1455,7 +1455,7 @@ function renderGrid(projects) {
       const cl = c.cloneNode(true);
       // clones appear immediately — no slide-up animation
       cl.style.animation = 'none';
-      cl.style.opacity = '1';
+      cl.style.opacity = '';
       // re-wire title hover on clones
       const pid = cl.dataset.pid;
       const proj = projects.find(p => p.id === pid);
@@ -1484,11 +1484,12 @@ function renderGrid(projects) {
           duration: 700,
           easing: 'cubicBezier(0.22,1,0.36,1)',
           delay: anime.stagger(55, { from: 'center' }),
-          begin: () => origCards.forEach(c => { c.style.opacity = '0'; })
+          begin: () => origCards.forEach(c => { c.style.opacity = '0'; }),
+          complete: () => origCards.forEach(c => { c.style.opacity = ''; c.style.transform = ''; })
         });
       });
     } else {
-      origCards.forEach(c => { c.style.opacity = '1'; });
+      origCards.forEach(c => { c.style.opacity = ''; });
     }
 
     // Measure one "set" width after DOM is laid out
@@ -1561,7 +1562,7 @@ function renderGrid(projects) {
       const skew  = active ? (t * MAX_SKEW * Math.sign(v)).toFixed(2) : 0;
 
       grid.querySelectorAll('.carousel-card').forEach(c => {
-        if (c.style.animation) { c.style.animation = ''; c.style.opacity = '1'; }
+        if (c.style.animation) { c.style.animation = ''; c.style.opacity = ''; }
         if (!active) { c.style.transform = ''; c.style.willChange = ''; return; }
         const cx   = c.offsetLeft + c.offsetWidth / 2 - pos;
         const norm = (cx - vpCx) / vpCx;
