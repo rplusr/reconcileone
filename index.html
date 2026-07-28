@@ -129,6 +129,8 @@ button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
   body.carousel-hover #sticky-bottom{
     opacity:0.08
   }
+  .carousel-card{transition:opacity 0.35s ease}
+  body.carousel-hover .carousel-card:not(.is-hovered){opacity:0.2}
 }
 
 /* Each card = image box + descriptor below */
@@ -1400,8 +1402,8 @@ function renderGrid(projects) {
 
     if (!editMode) {
       const _titleEl = document.getElementById('carousel-active-title');
-      card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); document.body.classList.add('carousel-hover'); });
-      card.addEventListener('mouseleave', () => { _titleEl.classList.remove('visible'); document.body.classList.remove('carousel-hover'); });
+      card.addEventListener('mouseenter', () => { _titleEl.textContent = p.title || ''; _titleEl.classList.add('visible'); document.body.classList.add('carousel-hover'); card.classList.add('is-hovered'); });
+      card.addEventListener('mouseleave', () => { _titleEl.classList.remove('visible'); document.body.classList.remove('carousel-hover'); card.classList.remove('is-hovered'); });
       card.setAttribute('tabindex', '0');
       card.setAttribute('role', 'button');
       card.setAttribute('aria-label', p.title || 'View project');
@@ -1459,8 +1461,8 @@ function renderGrid(projects) {
       const proj = projects.find(p => p.id === pid);
       if (proj) {
         const activeTitleEl = document.getElementById('carousel-active-title');
-        cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); document.body.classList.add('carousel-hover'); });
-        cl.addEventListener('mouseleave', () => { activeTitleEl.classList.remove('visible'); document.body.classList.remove('carousel-hover'); });
+        cl.addEventListener('mouseenter', () => { activeTitleEl.textContent = proj.title || ''; activeTitleEl.classList.add('visible'); document.body.classList.add('carousel-hover'); cl.classList.add('is-hovered'); });
+        cl.addEventListener('mouseleave', () => { activeTitleEl.classList.remove('visible'); document.body.classList.remove('carousel-hover'); cl.classList.remove('is-hovered'); });
         cl.addEventListener('click', () => navigate('#/project/' + proj.id));
       }
       return cl;
