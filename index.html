@@ -668,6 +668,8 @@ const FIREBASE_SECRET = '';
 const SUPABASE_URL = 'https://uusuhjlvyjixaemmglbs.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1c3Voamx2eWppeGFlbW1nbGJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTY0NTgsImV4cCI6MjA5Nzg3MjQ1OH0.GGI_x_W6Uk76GabycdXEuZvjh0U7imZsnM-jDxSirx0';
 const SUPABASE_BUCKET = 'portfolio-images';
+// keep Supabase free-tier project alive (resets 7-day inactivity clock on each visit)
+fetch(SUPABASE_URL + '/rest/v1/', { headers: { apikey: SUPABASE_KEY } }).catch(() => {});
 let content, editMode = false, viewMode = 'grid', infoOpen = false;
 let currentView = 'home', currentProjectId = null;
 let transitioning = false, animateCards = false;
