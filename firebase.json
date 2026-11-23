@@ -4,6 +4,6 @@
   },
   "hosting": {
     "public": ".",
-    "ignore": ["firebase.json", "database.rules.json", ".gitignore"]
+    "ignore": ["firebase.json", "database.rules.json", ".gitignore", "*.jsonl"]
   }
 }

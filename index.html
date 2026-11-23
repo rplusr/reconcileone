@@ -3,22 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dan Elliott — Designer & Creative Director</title>
+<title>Dan Elliott — Designer & Creative Director, Perth</title>
 <meta name="description" content="Dan Elliott is a designer and creative director based in Perth, Australia. Specialising in brand identity, digital design, and creative strategy.">
+<meta name="keywords" content="designer Perth, creative director Perth, brand identity, graphic design, digital design, creative strategy, Dan Elliott">
+<meta name="author" content="Dan Elliott">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://danielsans.net/">
 <!-- Open Graph -->
-<meta property="og:title" content="Dan Elliott — Designer & Creative Director">
+<meta property="og:title" content="Dan Elliott — Designer & Creative Director, Perth">
 <meta property="og:description" content="Designer and creative director based in Perth, Australia. Specialising in brand identity, digital design, and creative strategy.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://danielsans.net/">
 <meta property="og:site_name" content="Dan Elliott">
+<meta property="og:image" content="https://danielsans.net/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_AU">
 <!-- Twitter / X -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Dan Elliott — Designer & Creative Director">
-<meta name="twitter:description" content="Designer and creative director based in Perth, Australia.">
+<meta name="twitter:title" content="Dan Elliott — Designer & Creative Director, Perth">
+<meta name="twitter:description" content="Designer and creative director based in Perth, Australia. Specialising in brand identity, digital design, and creative strategy.">
+<meta name="twitter:image" content="https://danielsans.net/og-image.jpg">
 <!-- Structured data -->
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Dan Elliott","jobTitle":"Designer & Creative Director","url":"https://danielsans.net","address":{"@type":"PostalAddress","addressLocality":"Perth","addressCountry":"AU"},"sameAs":[]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Person","name":"Dan Elliott","jobTitle":"Designer & Creative Director","url":"https://danielsans.net","address":{"@type":"PostalAddress","addressLocality":"Perth","addressRegion":"WA","addressCountry":"AU"},"sameAs":["https://www.linkedin.com/in/danelliott","https://www.instagram.com/danielsans","https://www.behance.net/danelliott"]}</script>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-B30JSYQ217"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-B30JSYQ217');</script>
@@ -1353,8 +1360,9 @@ function renderGrid(projects) {
       const img = document.createElement('img');
       img.className = 'c-img';
       img.src = safeImgUrl(p.image);
-      img.alt = p.title || '';
+      img.alt = (p.title ? p.title + ' — ' : '') + (p.category || 'project') + ' by Dan Elliott';
       img.decoding = 'async';
+      img.loading = 'lazy';
       img.draggable = false;
       const initAspect = parseAspect(p.aspect);
       _cardW = `calc(${baseH} * ${hMult.toFixed(4)} * ${initAspect.toFixed(4)})`;
@@ -1809,8 +1817,9 @@ function renderList(projects) {
       if (p.image) {
         const img = document.createElement('img');
         img.src = safeImgUrl(p.image);
-        img.alt = '';
+        img.alt = (p.title ? p.title + ' — ' : '') + (p.category || 'project') + ' by Dan Elliott';
         img.decoding = 'async';
+        img.loading = 'lazy';
         img.draggable = false;
         imgWrap.appendChild(img);
         thumbObserver.observe(img);
